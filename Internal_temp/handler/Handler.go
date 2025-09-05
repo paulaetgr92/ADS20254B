@@ -12,6 +12,9 @@ type TokenHandlerInterface interface {
 }
 
 type CreateLoginHandlerInterface interface {
-	CreateLogin(c echo.Context) error
 	Login(c echo.Context) error
+}
+
+type twillioHandlerInterface interface {
+	VerifyCode(c echo.Context) error
 }

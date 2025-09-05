@@ -11,33 +11,107 @@ import (
 )
 
 const createCadastro = `-- name: CreateCadastro :one
-INSERT INTO cadastro (name, email, password, AcessID,created_at)
-    VALUES ($1, $2, $3,$4,now())
-RETURNING id, name, email, password, acessid, created_at
+INSERT INTO cadastro (name, cnpj, email, celular, password, status, created_at)
+VALUES ($1, $2, $3, $4, $5, $6, now())
+RETURNING id, name, cnpj, email, celular, password, status, activation_code, created_at
 `
 
 type CreateCadastroParams struct {
 	Name     string
+	Cnpj     sql.NullString
 	Email    string
+	Celular  string
 	Password string
-	Acessid  sql.NullInt64
+	Status   string
 }
 
-func (q *Queries) CreateCadastro(ctx context.Context, arg CreateCadastroParams) error {
+func (q *Queries) CreateCadastro(ctx context.Context, arg CreateCadastroParams) (Cadastro, error) {
 	row := q.db.QueryRowContext(ctx, createCadastro,
 		arg.Name,
+		arg.Cnpj,
 		arg.Email,
+		arg.Celular,
 		arg.Password,
-		arg.Acessid,
+		arg.Status,
 	)
 	var i Cadastro
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.Cnpj,
 		&i.Email,
+		&i.Celular,
 		&i.Password,
-		&i.Acessid,
+		&i.Status,
+		&i.ActivationCode,
 		&i.CreatedAt,
 	)
+	return i, err
+}
+
+const getSellerByCNPJ = `-- name: GetSellerByCNPJ :one
+SELECT id, name, email, celular, password, status, activation_code, created_at
+FROM cadastro
+WHERE celular= $1
+`
+
+type GetSellerByCNPJRow struct {
+	ID             int64
+	Name           string
+	Email          string
+	Celular        string
+	Password       string
+	Status         string
+	ActivationCode sql.NullString
+	CreatedAt      sql.NullTime
+}
+
+func (q *Queries) GetSellerByCNPJ(ctx context.Context, celular string) (GetSellerByCNPJRow, error) {
+	row := q.db.QueryRowContext(ctx, getSellerByCNPJ, celular)
+	var i GetSellerByCNPJRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Celular,
+		&i.Password,
+		&i.Status,
+		&i.ActivationCode,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updateActivationCode = `-- name: UpdateActivationCode :exec
+UPDATE cadastro
+SET activation_code = $2,
+    status = $3
+WHERE celular = $1
+`
+
+type UpdateActivationCodeParams struct {
+	Celular        string
+	ActivationCode sql.NullString
+	Status         string
+}
+
+func (q *Queries) UpdateActivationCode(ctx context.Context, arg UpdateActivationCodeParams) error {
+	_, err := q.db.ExecContext(ctx, updateActivationCode, arg.Celular, arg.ActivationCode, arg.Status)
+	return err
+}
+
+const updateCadastroStatus = `-- name: UpdateCadastroStatus :exec
+UPDATE cadastro
+SET status = $2
+WHERE activation_code= $1
+`
+
+type UpdateCadastroStatusParams struct {
+	ActivationCode sql.NullString
+	Status         string
+}
+
+func (q *Queries) UpdateCadastroStatus(ctx context.Context, arg UpdateCadastroStatusParams) error {
+	_, err := q.db.ExecContext(ctx, updateCadastroStatus, arg.ActivationCode, arg.Status)
 	return err
 }

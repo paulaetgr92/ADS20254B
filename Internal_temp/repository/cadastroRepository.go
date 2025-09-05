@@ -15,10 +15,18 @@ func NewCadastroNewRepository(base *BaseRepository) *CadastroNewRepository {
 	}
 }
 
-func (r *CadastroNewRepository) CreateCadastroRepository(ctx context.Context, arg db.CreateCadastroParams) error {
-	if err := r.GetConnection(ctx); err != nil {
+func (r *CadastroNewRepository) CreateCadastroRepository(ctx context.Context, arg db.CreateCadastroParams) (db.Cadastro, error) {
+	err := r.GetConnection(ctx)
+	if err != nil {
+		return db.Cadastro{}, err
+	}
+	return r.Queries.CreateCadastro(ctx, arg)
+}
+
+func (r *CadastroNewRepository) UpdateActivationCode(ctx context.Context, arg db.UpdateActivationCodeParams) error {
+	err := r.GetConnection(ctx)
+	if err != nil {
 		return err
 	}
-
-	return r.Queries.CreateCadastro(ctx, arg)
+	return r.Queries.UpdateActivationCode(ctx, arg)
 }

@@ -10,12 +10,15 @@ import (
 )
 
 type Cadastro struct {
-	ID        int64
-	Name      string
-	Email     string
-	Password  string
-	Acessid   sql.NullInt64
-	CreatedAt sql.NullTime
+	ID             int64
+	Name           string
+	Cnpj           sql.NullString
+	Email          string
+	Celular        string
+	Password       string
+	Status         string
+	ActivationCode sql.NullString
+	CreatedAt      sql.NullTime
 }
 
 type Login struct {

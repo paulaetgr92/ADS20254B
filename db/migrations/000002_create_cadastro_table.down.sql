@@ -1,1 +1,1 @@
-drop table cadastro;
+drop table cadastro cascade ;

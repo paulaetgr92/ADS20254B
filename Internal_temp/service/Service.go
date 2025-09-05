@@ -7,7 +7,8 @@ import (
 )
 
 type CadastroServiceInterface interface {
-	CreateCadastro(ctx context.Context, data model.CadastroRequest) error
+	CreateCadastro(ctx context.Context, data model.CadastroRequest) (db.Cadastro, error)
+	VerifySeller(ctx context.Context, data model.TwillioModelRequest) error
 }
 
 type TokenServiceInterface interface {

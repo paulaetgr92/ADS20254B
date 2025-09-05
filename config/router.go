@@ -6,7 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func SetupRoutes(e *echo.Echo, cadastroHandler *handler2.CadastroHandler, handler *handler2.UserTokensHistHandler, loginHandler *handler2.LoginHandler, getLoginHandler *handler2.LoginHandler) {
+func SetupRoutes(e *echo.Echo, cadastroHandler *handler2.CadastroHandler, handler *handler2.UserTokensHistHandler, loginHandler *handler2.LoginHandler, getLoginHandler *handler2.LoginHandler, sellerHandler *handler2.SellerHandler) {
 	api := e.Group("/api/v1")
 
 	cadastros := api.Group("/cadastros")
@@ -18,4 +18,13 @@ func SetupRoutes(e *echo.Echo, cadastroHandler *handler2.CadastroHandler, handle
 	{
 		login.POST("", loginHandler.Login)
 	}
+
+	sellers := api.Group("/sellers")
+	{
+		sellers.POST("/verify", sellerHandler.VerifyCode)
+	}
+
+	api.GET("/health", func(c echo.Context) error {
+		return c.JSON(200, map[string]string{"status": "ok"})
+	})
 }
