@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/twilio/twilio-go"
 	openapi "github.com/twilio/twilio-go/rest/api/v2010"
@@ -13,9 +14,10 @@ type TwilioService struct {
 }
 
 func NewTwilioService() *TwilioService {
-	accountSid := "ACfc9dddaf8282a7bad0be9ac46fc22830"
-	authToken := "2bb497173c660b533c0f1d527ceb97f2"
-	fromWhatsApp := "+14155238886"
+	accountSid := os.Getenv("TWILIO_ACCOUNT_SID")
+	authToken := os.Getenv("TWILIO_AUTH_TOKEN")
+
+	fromWhatsApp := ""
 
 	client := twilio.NewRestClientWithParams(twilio.ClientParams{
 		Username: accountSid,
@@ -30,7 +32,7 @@ func NewTwilioService() *TwilioService {
 func (t *TwilioService) SendActivationCodeTemplate(to string, code string) error {
 	params := &openapi.CreateMessageParams{}
 	params.SetFrom("whatsapp:" + t.from)
-	params.SetTo("whatsapp:" + "+5511990177807")
+	params.SetTo("whatsapp:" + "")
 	templateSID := "HXb5b62575e6e4ff6129ad7c8efe1f983e"
 
 	variables := fmt.Sprintf(`{"1":"%s"}`, code)
