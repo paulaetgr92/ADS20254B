@@ -33,7 +33,7 @@ func (t *TwilioService) SendActivationCodeTemplate(to string, code string) error
 	params := &openapi.CreateMessageParams{}
 	params.SetFrom("whatsapp:" + t.from)
 	params.SetTo("whatsapp:" + "")
-	templateSID := "HXb5b62575e6e4ff6129ad7c8efe1f983e"
+	templateSID := ""
 
 	variables := fmt.Sprintf(`{"1":"%s"}`, code)
 	params.SetContentSid(templateSID)
