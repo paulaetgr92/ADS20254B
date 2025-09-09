@@ -1,6 +1,7 @@
 CREATE TABLE cadastro (
                           id BIGSERIAL PRIMARY KEY,
                           name VARCHAR(100) NOT NULL,
+                            cpf varchar(100) unique ,
                           cnpj VARCHAR(20) UNIQUE,
                           email VARCHAR(100) NOT NULL,
                           celular VARCHAR(20) NOT NULL,

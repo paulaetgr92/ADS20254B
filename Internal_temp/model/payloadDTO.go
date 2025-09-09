@@ -7,6 +7,7 @@ import (
 )
 
 type PayloadDTO struct {
+	Status         string    `json:"status"`
 	ID             uuid.UUID `json:"id"`
 	UserID         int64     `json:"user_id"`
 	UserNickname   string    `json:"user_nickname"`
@@ -18,6 +19,7 @@ type PayloadDTO struct {
 	UserEmail      string    `json:"user_email"`
 	OrganizationID int64     `json:"organization_id"`
 	Document       string    `json:"document"`
+	ActivationCode string    `json:"activationCode"`
 }
 
 type Payload struct {

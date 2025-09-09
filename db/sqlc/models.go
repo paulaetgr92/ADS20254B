@@ -12,6 +12,7 @@ import (
 type Cadastro struct {
 	ID             int64
 	Name           string
+	Cpf            sql.NullString
 	Cnpj           sql.NullString
 	Email          string
 	Celular        string
@@ -24,6 +25,16 @@ type Cadastro struct {
 type Login struct {
 	Email    string
 	Password string
+}
+
+type Produto struct {
+	IDRoupa     int64
+	Categoria   string
+	Tamanho     string
+	Cores       sql.NullString
+	TempoValor  sql.NullFloat64
+	Status      sql.NullString
+	Localizacao sql.NullString
 }
 
 type Token struct {
