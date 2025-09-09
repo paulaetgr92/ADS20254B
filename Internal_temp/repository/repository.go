@@ -24,3 +24,11 @@ type SellerRepositoryInterface interface {
 	UpdateSellerStatus(ctx context.Context, data db.UpdateCadastroStatusParams) error
 	GetSellerByCNPJ(ctx context.Context, code string) (db.GetSellerByCNPJRow, error)
 }
+
+type ProdutoRepositoryInterface interface {
+	DeleteProdutoByIdRepository(ctx context.Context, arg db.DeleteProdutoByIDParams) (db.Produto, error)
+	AtualizarProduto(ctx context.Context, arg db.AtualizarProdutoByIDParams) (db.Produto, error)
+	GetProdutoByDisponibilidade(ctx context.Context, arg db.GetProdutoByDisponibilidadeParams) ([]db.GetProdutoByDisponibilidadeRow, error)
+	GetProdutoByIdRepository(ctx context.Context, arg int64) (db.GetProdutoByIdRow, error)
+	CreateProdutoRepository(ctx context.Context, arg db.CreateProductParams) (int64, error)
+}

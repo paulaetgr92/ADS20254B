@@ -28,6 +28,10 @@ func NewCadastroService(cadastroRepo Repository.CadastroRepositoryInterface, sel
 func (s *CadastroService) CreateCadastro(ctx context.Context, data model.CadastroRequest) (db.Cadastro, error) {
 	arg := db.CreateCadastroParams{
 		Name: data.Name,
+		Cpf: sql.NullString{
+			String: data.CPF,
+			Valid:  true,
+		},
 		Cnpj: sql.NullString{
 			String: data.CNPJ,
 			Valid:  true,
@@ -35,6 +39,11 @@ func (s *CadastroService) CreateCadastro(ctx context.Context, data model.Cadastr
 		Email:    data.Email,
 		Celular:  data.Celular,
 		Password: data.Password,
+		Status:   data.PayloadDTO.Status,
+		ActivationCode: sql.NullString{
+			String: data.PayloadDTO.ActivationCode,
+			Valid:  true,
+		},
 	}
 
 	cadastro, err := s.Repo.CreateCadastroRepository(ctx, arg)
@@ -46,10 +55,10 @@ func (s *CadastroService) CreateCadastro(ctx context.Context, data model.Cadastr
 
 	err = s.R.UpdateSellerStatus(ctx, db.UpdateCadastroStatusParams{
 		ActivationCode: sql.NullString{
-			String: data.ActivationCode,
+			String: data.PayloadDTO.ActivationCode,
 			Valid:  true,
 		},
-		Status: data.Status,
+		Status: data.PayloadDTO.Status,
 	})
 	if err != nil {
 		return cadastro, fmt.Errorf("erro ao salvar código de ativação: %w", err)

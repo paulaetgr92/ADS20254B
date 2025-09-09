@@ -11,33 +11,38 @@ import (
 )
 
 const createCadastro = `-- name: CreateCadastro :one
-INSERT INTO cadastro (name, cnpj, email, celular, password, status, created_at)
-VALUES ($1, $2, $3, $4, $5, $6, now())
-RETURNING id, name, cnpj, email, celular, password, status, activation_code, created_at
+INSERT INTO cadastro (name, cpf, cnpj, email, celular, password, status,activation_code,created_at)
+VALUES ($1, $2, $3,$4, $5, $6, $7,$8, now())
+RETURNING id, name, cpf, cnpj, email, celular, password, status, activation_code, created_at
 `
 
 type CreateCadastroParams struct {
-	Name     string
-	Cnpj     sql.NullString
-	Email    string
-	Celular  string
-	Password string
-	Status   string
+	Name           string
+	Cpf            sql.NullString
+	Cnpj           sql.NullString
+	Email          string
+	Celular        string
+	Password       string
+	Status         string
+	ActivationCode sql.NullString
 }
 
 func (q *Queries) CreateCadastro(ctx context.Context, arg CreateCadastroParams) (Cadastro, error) {
 	row := q.db.QueryRowContext(ctx, createCadastro,
 		arg.Name,
+		arg.Cpf,
 		arg.Cnpj,
 		arg.Email,
 		arg.Celular,
 		arg.Password,
 		arg.Status,
+		arg.ActivationCode,
 	)
 	var i Cadastro
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.Cpf,
 		&i.Cnpj,
 		&i.Email,
 		&i.Celular,
