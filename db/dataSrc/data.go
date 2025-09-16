@@ -11,8 +11,8 @@ import (
 func Connect() (*sql.DB, error) {
 	host := "localhost"
 	port := 5432
-	user := "postgres"
-	password := "Postgres123!"
+	user := "root"
+	password := "123paula123"
 	dbname := "meu_banco"
 
 	psqlInfo := fmt.Sprintf(
