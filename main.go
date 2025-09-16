@@ -1,19 +1,22 @@
 package main
 
 import (
-	"log"
-
 	"awesomeProject/Internal_temp/handler"
 	"awesomeProject/Internal_temp/repository"
 	"awesomeProject/Internal_temp/service"
 	"awesomeProject/config"
 	"awesomeProject/db/dataSrc"
 	dbsqlc "awesomeProject/db/sqlc"
+	"log"
 
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Erro ao carregar .env: ", err)
+	}
 
 	e := echo.New()
 
@@ -21,34 +24,37 @@ func main() {
 	if err != nil {
 		log.Fatal("Erro ao conectar ao banco: ", err)
 	}
-
-	twilioService := service.NewTwilioService()
-
 	queries := dbsqlc.New(conn)
 
 	baseRepo := Repository.NewBaseRepository(queries, conn)
-
 	cadastroRepo := Repository.NewCadastroNewRepository(baseRepo)
 	tokenHistRepo := Repository.NewUserTokensHistRepository(*baseRepo)
-	LoginRepo := Repository.NewLoginRepository(baseRepo)
-	Login := Repository.NewLoginRepository(baseRepo)
-	SellerRepo := Repository.NewSellerRepository(*baseRepo)
-	ProdutoRepo := Repository.NewProdutosRepository(baseRepo)
+	loginRepo := Repository.NewLoginRepository(baseRepo)
+	sellerRepo := Repository.NewSellerRepository(*baseRepo)
+	produtoRepo := Repository.NewProdutosRepository(baseRepo)
 
-	cadastroSvc := service.NewCadastroService(cadastroRepo, SellerRepo, twilioService)
+	twilioService := service.NewTwilioService()
+
+	cadastroSvc := service.NewCadastroService(cadastroRepo, sellerRepo, twilioService)
 	tokenHistSvc := service.NewUserTokensHistService(tokenHistRepo)
-	LoginSvc := service.NewLoginoService(LoginRepo)
-	GetLoginSVC := service.NewLoginoService(Login)
-	CreateProdutoSVC := service.NewProdutoService(ProdutoRepo)
+	loginSvc := service.NewLoginoService(loginRepo)
+	produtoSvc := service.NewProdutoService(produtoRepo)
 
 	cadastroHandler := handler.NewCadastroHandler(cadastroSvc)
 	userTokensHistHandler := handler.NewUserTokensHistHandler(tokenHistSvc)
-	loginHandler := handler.NewLoginHandler(LoginSvc)
-	GetLoginHandler := handler.NewLoginHandler(GetLoginSVC)
-	SellerHandler := handler.NewSellerHandler(cadastroSvc)
-	ProdutoHandler := handler.NewProdutoHandler(CreateProdutoSVC)
+	loginHandler := handler.NewLoginHandler(loginSvc)
+	sellerHandler := handler.NewSellerHandler(cadastroSvc)
+	produtoHandler := handler.NewProdutoHandler(produtoSvc)
 
-	config.SetupRoutes(e, cadastroHandler, userTokensHistHandler, loginHandler, GetLoginHandler, SellerHandler, ProdutoHandler)
+	config.SetupRoutes(
+		e,
+		cadastroHandler,
+		userTokensHistHandler,
+		loginHandler,
+		loginHandler,
+		sellerHandler,
+		produtoHandler,
+	)
 
 	log.Println("Servidor rodando na porta 8080")
 	e.Logger.Fatal(e.Start(":8080"))

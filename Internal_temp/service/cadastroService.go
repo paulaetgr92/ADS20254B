@@ -55,7 +55,7 @@ func (s *CadastroService) CreateCadastro(ctx context.Context, data model.Cadastr
 
 	err = s.R.UpdateSellerStatus(ctx, db.UpdateCadastroStatusParams{
 		ActivationCode: sql.NullString{
-			String: data.PayloadDTO.ActivationCode,
+			String: code,
 			Valid:  true,
 		},
 		Status: data.PayloadDTO.Status,
