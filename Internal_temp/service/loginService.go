@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type LoginService struct {
@@ -37,7 +38,7 @@ func (s *LoginService) LoginUser(ctx context.Context, data model.LoginRequest) (
 		return "", errors.New("usuário ou senha inválidos")
 	}
 
-	if user.Password != data.Password {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(data.Password)); err != nil {
 		return "", errors.New("usuário ou senha inválidos")
 	}
 

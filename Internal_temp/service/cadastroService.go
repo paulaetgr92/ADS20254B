@@ -5,11 +5,13 @@ import (
 	Repository "awesomeProject/Internal_temp/repository"
 	db "awesomeProject/db/sqlc"
 	"context"
+	"crypto/rand"
 	"database/sql"
 	"errors"
 	"fmt"
-	"math/rand"
-	"time"
+	"math/big"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type CadastroService struct {
@@ -26,6 +28,11 @@ func NewCadastroService(cadastroRepo Repository.CadastroRepositoryInterface, sel
 	}
 }
 func (s *CadastroService) CreateCadastro(ctx context.Context, data model.CadastroRequest) (db.Cadastro, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(data.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return db.Cadastro{}, fmt.Errorf("erro ao gerar hash da senha: %w", err)
+	}
+
 	arg := db.CreateCadastroParams{
 		Name: data.Name,
 		Cpf: sql.NullString{
@@ -38,7 +45,7 @@ func (s *CadastroService) CreateCadastro(ctx context.Context, data model.Cadastr
 		},
 		Email:    data.Email,
 		Celular:  data.Celular,
-		Password: data.Password,
+		Password: string(hashedPassword),
 		Status:   data.PayloadDTO.Status,
 		ActivationCode: sql.NullString{
 			String: data.PayloadDTO.ActivationCode,
@@ -73,8 +80,12 @@ func (s *CadastroService) CreateCadastro(ctx context.Context, data model.Cadastr
 }
 
 func GenerateActivationCode() string {
-	rand.Seed(time.Now().UnixNano())
-	return fmt.Sprintf("%04d", rand.Intn(10000))
+	num, err := rand.Int(rand.Reader, big.NewInt(10000))
+	if err != nil {
+		// Fallback para um valor padrão em caso de erro
+		return "0000"
+	}
+	return fmt.Sprintf("%04d", num.Int64())
 }
 
 func (s *CadastroService) VerifySeller(ctx context.Context, data model.TwillioModelRequest) error {

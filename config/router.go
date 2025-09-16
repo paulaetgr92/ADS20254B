@@ -6,7 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func SetupRoutes(e *echo.Echo, cadastroHandler *handler2.CadastroHandler, handler *handler2.UserTokensHistHandler, loginHandler *handler2.LoginHandler, getLoginHandler *handler2.LoginHandler, sellerHandler *handler2.SellerHandler, produtoHandler *handler2.ProdutoHandler) {
+func SetupRoutes(e *echo.Echo, cadastroHandler *handler2.CadastroHandler, handler *handler2.UserTokensHistHandler, loginHandler *handler2.LoginHandler, sellerHandler *handler2.SellerHandler, produtoHandler *handler2.ProdutoHandler) {
 	api := e.Group("/api/v1")
 
 	cadastros := api.Group("/cadastros")

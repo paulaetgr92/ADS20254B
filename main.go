@@ -2,7 +2,7 @@ package main
 
 import (
 	"awesomeProject/Internal_temp/handler"
-	"awesomeProject/Internal_temp/repository"
+	Repository "awesomeProject/Internal_temp/repository"
 	"awesomeProject/Internal_temp/service"
 	"awesomeProject/config"
 	"awesomeProject/db/dataSrc"
@@ -11,6 +11,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
@@ -19,6 +20,12 @@ func main() {
 	}
 
 	e := echo.New()
+
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.DELETE, echo.OPTIONS},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
+	}))
 
 	conn, err := dataSrc.Connect()
 	if err != nil {
@@ -51,11 +58,10 @@ func main() {
 		cadastroHandler,
 		userTokensHistHandler,
 		loginHandler,
-		loginHandler,
 		sellerHandler,
 		produtoHandler,
 	)
 
 	log.Println("Servidor rodando na porta 8080")
-	e.Logger.Fatal(e.Start(":8080"))
+	e.Logger.Fatal(e.Start("0.0.0.0:8080"))
 }

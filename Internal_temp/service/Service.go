@@ -15,7 +15,7 @@ type TokenServiceInterface interface {
 	GetUserTokensHist(ctx context.Context, payload model.PayloadDTO) error
 }
 
-type LoginServiceinterface interface {
+type LoginServiceInterface interface {
 	LoginUser(ctx context.Context, data model.LoginRequest) (string, error)
 	CreateLoginUser(ctx context.Context, data model.LoginRequest) (db.Login, error)
 }
