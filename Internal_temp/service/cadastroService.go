@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
+
+	"golang.org/x/crypto/bcrypt" // 🚀 Import do bcrypt
 )
 
 type CadastroService struct {
@@ -25,7 +27,14 @@ func NewCadastroService(cadastroRepo Repository.CadastroRepositoryInterface, sel
 		Twilio: twilioService,
 	}
 }
+
 func (s *CadastroService) CreateCadastro(ctx context.Context, data model.CadastroRequest) (db.Cadastro, error) {
+	// 🔐 Gerar hash da senha
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(data.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return db.Cadastro{}, fmt.Errorf("erro ao gerar hash da senha: %w", err)
+	}
+
 	arg := db.CreateCadastroParams{
 		Name: data.Name,
 		Cpf: sql.NullString{
@@ -38,7 +47,7 @@ func (s *CadastroService) CreateCadastro(ctx context.Context, data model.Cadastr
 		},
 		Email:    data.Email,
 		Celular:  data.Celular,
-		Password: data.Password,
+		Password: string(hashedPassword), // 👉 aqui já vai criptografada
 		Status:   data.PayloadDTO.Status,
 		ActivationCode: sql.NullString{
 			String: data.PayloadDTO.ActivationCode,

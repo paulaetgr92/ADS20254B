@@ -1,29 +1,33 @@
-package Repository
+package repository
 
 import (
 	db "awesomeProject/db/sqlc"
 	"context"
 )
 
-type CadastroNewRepository struct {
+type CadastroRepository struct {
 	*BaseRepository
 }
 
-func NewCadastroNewRepository(base *BaseRepository) *CadastroNewRepository {
-	return &CadastroNewRepository{
+func NewCadastroRepository(base *BaseRepository) *CadastroRepository {
+	return &CadastroRepository{
 		BaseRepository: base,
 	}
 }
 
-func (r *CadastroNewRepository) CreateCadastroRepository(ctx context.Context, arg db.CreateCadastroParams) (db.Cadastro, error) {
+// Criação de cadastro (já recebe senha criptografada do service)
+func (r *CadastroRepository) CreateCadastro(ctx context.Context, arg db.CreateCadastroParams) (db.Cadastro, error) {
 	err := r.GetConnection(ctx)
 	if err != nil {
 		return db.Cadastro{}, err
 	}
+
+	// 👉 aqui não mexemos na senha, apenas salvamos o que o service passou
 	return r.Queries.CreateCadastro(ctx, arg)
 }
 
-func (r *CadastroNewRepository) UpdateActivationCode(ctx context.Context, arg db.UpdateActivationCodeParams) error {
+// Atualização do código de ativação
+func (r *CadastroRepository) UpdateActivationCode(ctx context.Context, arg db.UpdateActivationCodeParams) error {
 	err := r.GetConnection(ctx)
 	if err != nil {
 		return err
