@@ -14,41 +14,51 @@ import (
 )
 
 func main() {
-
 	e := echo.New()
 
+	// Conexão com o banco
 	conn, err := dataSrc.Connect()
 	if err != nil {
 		log.Fatal("Erro ao conectar ao banco: ", err)
 	}
 
+	// Queries e base repository
+	queries := dbsqlc.New(conn)
+	baseRepo := repository.NewBaseRepository(queries, conn)
+
+	// Serviços auxiliares
 	twilioService := service.NewTwilioService()
 
-	queries := dbsqlc.New(conn)
+	// Repositórios
+	cadastroRepo := repository.NewCadastroRepository(baseRepo)
+	sellerRepo := repository.NewSellerRepository(baseRepo)
+	tokenHistRepo := repository.NewUserTokensHistRepository(baseRepo)
+	loginRepo := repository.NewLoginRepository(baseRepo)
+	produtoRepo := repository.NewProdutosRepository(baseRepo)
 
-	baseRepo := Repository.NewBaseRepository(queries, conn)
-
-	cadastroRepo := Repository.NewCadastroNewRepository(baseRepo)
-	tokenHistRepo := Repository.NewUserTokensHistRepository(*baseRepo)
-	LoginRepo := Repository.NewLoginRepository(baseRepo)
-	Login := Repository.NewLoginRepository(baseRepo)
-	SellerRepo := Repository.NewSellerRepository(*baseRepo)
-	ProdutoRepo := Repository.NewProdutosRepository(baseRepo)
-
-	cadastroSvc := service.NewCadastroService(cadastroRepo, SellerRepo, twilioService)
+	// Serviços
+	cadastroSvc := service.NewCadastroService(cadastroRepo, sellerRepo, twilioService)
 	tokenHistSvc := service.NewUserTokensHistService(tokenHistRepo)
-	LoginSvc := service.NewLoginoService(LoginRepo)
-	GetLoginSVC := service.NewLoginoService(Login)
-	CreateProdutoSVC := service.NewProdutoService(ProdutoRepo)
+	loginSvc := service.NewLoginService(loginRepo)
+	produtoSvc := service.NewProdutoService(produtoRepo)
 
+	// Handlers
 	cadastroHandler := handler.NewCadastroHandler(cadastroSvc)
 	userTokensHistHandler := handler.NewUserTokensHistHandler(tokenHistSvc)
-	loginHandler := handler.NewLoginHandler(LoginSvc)
-	GetLoginHandler := handler.NewLoginHandler(GetLoginSVC)
-	SellerHandler := handler.NewSellerHandler(cadastroSvc)
-	ProdutoHandler := handler.NewProdutoHandler(CreateProdutoSVC)
+	loginHandler := handler.NewLoginHandler(loginSvc)
+	getLoginHandler := handler.NewLoginHandler(loginSvc) // Pode ser o mesmo service
+	sellerHandler := handler.NewSellerHandler(sellerRepo)
+	produtoHandler := handler.NewProdutoHandler(produtoSvc)
 
-	config.SetupRoutes(e, cadastroHandler, userTokensHistHandler, loginHandler, GetLoginHandler, SellerHandler, ProdutoHandler)
+	// Configuração das rotas
+	config.SetupRoutes(e,
+		cadastroHandler,
+		userTokensHistHandler,
+		loginHandler,
+		getLoginHandler,
+		sellerHandler,
+		produtoHandler,
+	)
 
 	log.Println("Servidor rodando na porta 8080")
 	e.Logger.Fatal(e.Start(":8080"))

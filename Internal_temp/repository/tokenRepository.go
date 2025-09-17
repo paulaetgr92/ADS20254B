@@ -1,4 +1,4 @@
-package Repository
+package repository
 
 import (
 	db "awesomeProject/db/sqlc"
@@ -6,10 +6,10 @@ import (
 )
 
 type UserTokensHistRepository struct {
-	BaseRepository
+	*BaseRepository
 }
 
-func NewUserTokensHistRepository(baseRepo BaseRepository) *UserTokensHistRepository {
+func NewUserTokensHistRepository(baseRepo *BaseRepository) *UserTokensHistRepository {
 	return &UserTokensHistRepository{
 		BaseRepository: baseRepo,
 	}

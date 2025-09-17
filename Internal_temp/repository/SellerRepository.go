@@ -1,4 +1,4 @@
-package Repository
+package repository
 
 import (
 	db "awesomeProject/db/sqlc"
@@ -6,10 +6,10 @@ import (
 )
 
 type SellerRepository struct {
-	BaseRepository
+	*BaseRepository
 }
 
-func NewSellerRepository(baseRepo BaseRepository) *SellerRepository {
+func NewSellerRepository(baseRepo *BaseRepository) *SellerRepository {
 	return &SellerRepository{
 		BaseRepository: baseRepo,
 	}

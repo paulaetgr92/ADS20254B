@@ -1,4 +1,4 @@
-package Repository
+package repository
 
 import (
 	db "awesomeProject/db/sqlc"

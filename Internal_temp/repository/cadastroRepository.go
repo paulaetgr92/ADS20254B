@@ -21,8 +21,6 @@ func (r *CadastroRepository) CreateCadastro(ctx context.Context, arg db.CreateCa
 	if err != nil {
 		return db.Cadastro{}, err
 	}
-
-	// 👉 aqui não mexemos na senha, apenas salvamos o que o service passou
 	return r.Queries.CreateCadastro(ctx, arg)
 }
 
