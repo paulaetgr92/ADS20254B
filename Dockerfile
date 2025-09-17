@@ -1,35 +1,20 @@
-# Etapa 1: build da aplicação
-FROM golang:1.23 AS builder
-
-# Definir diretório de trabalho
+# Stage 1: build
+FROM golang:1.24-alpine AS builder
 WORKDIR /app
 
-# Copiar go.mod e go.sum primeiro (para cache das dependências)
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copiar o restante do código
 COPY . .
+RUN go build -o server .
 
-# Compilar a aplicação
-RUN go build -o main ./main.go
-
-# Etapa 2: imagem final
-FROM debian:bullseye-slim
-
+# Stage 2: final image
+FROM alpine:latest
 WORKDIR /app
 
-# Instalar certificados SSL (caso use chamadas HTTPS - ex: Twilio, banco remoto)
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /app/server .
 
-# Copiar binário do builder
-COPY --from=builder /app/main .
+# Opcional: se quiser logs coloridos
+ENV GIN_MODE=release
 
-# Copiar variáveis de ambiente (se existir .env)
-COPY .env .env
-
-# Expor porta
-EXPOSE 8080
-
-# Comando de start
-CMD ["./main"]
+CMD ["./server"]
