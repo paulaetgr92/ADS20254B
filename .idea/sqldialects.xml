@@ -5,6 +5,8 @@
     <file url="file://$PROJECT_DIR$/db/migrations/000002_create_cadastro_table.down.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/db/migrations/000002_create_cadastro_table.up.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/db/migrations/000003_create_token_table.up.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/db/migrations/000005_create_activation_code_table.down.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/db/migrations/000005_create_activation_code_table.up.sql" dialect="PostgreSQL" />
     <file url="PROJECT" dialect="PostgreSQL" />
   </component>
 </project>

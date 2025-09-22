@@ -10,29 +10,56 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"os"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 type CadastroService struct {
-	Repo   Repository.CadastroRepositoryInterface
-	R      Repository.SellerRepositoryInterface
-	Twilio *TwilioService
+	Repo        Repository.CadastroRepositoryInterface
+	R           Repository.SellerRepositoryInterface
+	Twilio      *TwilioService
+	Repos       *Repository.ActivationNewRepository
+	CountryCode string
 }
 
-func NewCadastroService(cadastroRepo Repository.CadastroRepositoryInterface, sellerRepo Repository.SellerRepositoryInterface, twilioService *TwilioService) *CadastroService {
+// Construtor
+func NewCadastroService(
+	cadastroRepo Repository.CadastroRepositoryInterface,
+	sellerRepo Repository.SellerRepositoryInterface,
+	twilioService *TwilioService,
+	repos *Repository.ActivationNewRepository,
+) *CadastroService {
+	countryCode := os.Getenv("DEFAULT_COUNTRY_CODE") // pega da env, ex: "+55"
+
 	return &CadastroService{
-		Repo:   cadastroRepo,
-		R:      sellerRepo,
-		Twilio: twilioService,
+		Repo:        cadastroRepo,
+		R:           sellerRepo,
+		Twilio:      twilioService,
+		Repos:       repos,
+		CountryCode: countryCode,
 	}
 }
+
+// Gera código aleatório de 4 dígitos
+func GenerateActivationCode() string {
+	num, err := rand.Int(rand.Reader, big.NewInt(10000))
+	if err != nil {
+		return "0000"
+	}
+	return fmt.Sprintf("%04d", num.Int64())
+}
+
+// Cria cadastro + código de ativação
 func (s *CadastroService) CreateCadastro(ctx context.Context, data model.CadastroRequest) (db.Cadastro, error) {
+	// Hash da senha
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(data.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return db.Cadastro{}, fmt.Errorf("erro ao gerar hash da senha: %w", err)
 	}
 
+	// Cria cadastro no banco
 	arg := db.CreateCadastroParams{
 		Name: data.Name,
 		Cpf: sql.NullString{
@@ -46,11 +73,7 @@ func (s *CadastroService) CreateCadastro(ctx context.Context, data model.Cadastr
 		Email:    data.Email,
 		Celular:  data.Celular,
 		Password: string(hashedPassword),
-		Status:   data.PayloadDTO.Status,
-		ActivationCode: sql.NullString{
-			String: data.PayloadDTO.ActivationCode,
-			Valid:  true,
-		},
+		Status:   "pendente",
 	}
 
 	cadastro, err := s.Repo.CreateCadastroRepository(ctx, arg)
@@ -58,36 +81,30 @@ func (s *CadastroService) CreateCadastro(ctx context.Context, data model.Cadastr
 		return cadastro, err
 	}
 
+	// Gera código de ativação
 	code := GenerateActivationCode()
-
-	err = s.R.UpdateSellerStatus(ctx, db.UpdateCadastroStatusParams{
-		ActivationCode: sql.NullString{
-			String: code,
-			Valid:  true,
-		},
-		Status: data.PayloadDTO.Status,
-	})
-	if err != nil {
+	expiresAt := time.Now().Add(5 * time.Minute)
+	
+	params := db.SaveActivationCodeParams{
+		CadastroID: cadastro.ID,
+		Code:       code,
+		ExpiresAt:  expiresAt,
+	}
+	if err := s.Repos.SaveActivationCode(ctx, params); err != nil {
 		return cadastro, fmt.Errorf("erro ao salvar código de ativação: %w", err)
 	}
 
-	err = s.Twilio.SendActivationCodeTemplate(data.Celular, code)
-	if err != nil {
+	to := cadastro.Celular
+	code = GenerateActivationCode()
+
+	if err := s.Twilio.SendActivationCode(to, code); err != nil {
 		return cadastro, fmt.Errorf("erro ao enviar código de ativação: %w", err)
 	}
 
 	return cadastro, nil
 }
 
-func GenerateActivationCode() string {
-	num, err := rand.Int(rand.Reader, big.NewInt(10000))
-	if err != nil {
-		// Fallback para um valor padrão em caso de erro
-		return "0000"
-	}
-	return fmt.Sprintf("%04d", num.Int64())
-}
-
+// Verifica código de ativação e ativa usuário
 func (s *CadastroService) VerifySeller(ctx context.Context, data model.TwillioModelRequest) error {
 	seller, err := s.R.GetSellerByCNPJ(ctx, data.Celular)
 	if err != nil {
@@ -100,10 +117,10 @@ func (s *CadastroService) VerifySeller(ctx context.Context, data model.TwillioMo
 
 	params := db.UpdateCadastroStatusParams{
 		ActivationCode: sql.NullString{
-			String: data.Code,
-			Valid:  true,
+			String: "",
+			Valid:  false,
 		},
-		Status: "inativo",
+		Status: "ativo",
 	}
 	if err := s.R.UpdateSellerStatus(ctx, params); err != nil {
 		return errors.New("erro ao ativar conta")

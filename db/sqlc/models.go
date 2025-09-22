@@ -9,6 +9,14 @@ import (
 	"time"
 )
 
+type ActivationCode struct {
+	ID         int32
+	CadastroID int64
+	Code       string
+	ExpiresAt  time.Time
+	CreatedAt  sql.NullTime
+}
+
 type Cadastro struct {
 	ID             int64
 	Name           string
@@ -20,11 +28,6 @@ type Cadastro struct {
 	Status         string
 	ActivationCode sql.NullString
 	CreatedAt      sql.NullTime
-}
-
-type Login struct {
-	Email    string
-	Password string
 }
 
 type Produto struct {

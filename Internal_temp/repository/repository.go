@@ -16,8 +16,8 @@ type TokenHistRepositoryInterface interface {
 }
 
 type CreateLoginRepositoryInterface interface {
-	CreateLogin(ctx context.Context, arg db.CreateLoginParams) (db.Login, error)
-	GetLogin(ctx context.Context, arg string) (db.Login, error)
+	CreateLogin(ctx context.Context, arg db.CreateLoginParams) (db.Cadastro, error)
+	GetLogin(ctx context.Context, arg string) (db.GetLoginRow, error)
 }
 
 type SellerRepositoryInterface interface {
@@ -31,4 +31,8 @@ type ProdutoRepositoryInterface interface {
 	GetProdutoByDisponibilidade(ctx context.Context, arg db.GetProdutoByDisponibilidadeParams) ([]db.GetProdutoByDisponibilidadeRow, error)
 	GetProdutoByIdRepository(ctx context.Context, arg int64) (db.GetProdutoByIdRow, error)
 	CreateProdutoRepository(ctx context.Context, arg db.CreateProductParams) (int64, error)
+}
+
+type SaveActivationCodeRepositoryInterface interface {
+	SaveActivationCode(ctx context.Context, data db.SaveActivationCodeParams) error
 }

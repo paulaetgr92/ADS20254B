@@ -18,18 +18,15 @@ func NewCadastroHandler(svc *service.CadastroService) *CadastroHandler {
 	}
 }
 
-// Endpoint POST /cadastro
 func (h *CadastroHandler) CreateCadastro(c echo.Context) error {
 	var req model.CadastroRequest
 
-	// Faz o bind do JSON para struct
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "dados inválidos",
 		})
 	}
 
-	// Validação mínima: campos obrigatórios
 	if req.Name == "" || req.Celular == "" || req.Email == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "nome, celular e email são obrigatórios",

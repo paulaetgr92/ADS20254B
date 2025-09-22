@@ -40,19 +40,25 @@ func main() {
 	sellerRepo := Repository.NewSellerRepository(*baseRepo)
 	produtoRepo := Repository.NewProdutosRepository(baseRepo)
 
+	// Cria Activation Repository
+	activationRepo := Repository.NewActivationNewRepository(baseRepo)
+
 	twilioService := service.NewTwilioService()
 
-	cadastroSvc := service.NewCadastroService(cadastroRepo, sellerRepo, twilioService)
+	// Serviços
+	cadastroSvc := service.NewCadastroService(cadastroRepo, sellerRepo, twilioService, activationRepo)
 	tokenHistSvc := service.NewUserTokensHistService(tokenHistRepo)
-	loginSvc := service.NewLoginoService(loginRepo)
+	loginSvc := service.NewLoginService(loginRepo) // nome corrigido
 	produtoSvc := service.NewProdutoService(produtoRepo)
 
+	// Handlers
 	cadastroHandler := handler.NewCadastroHandler(cadastroSvc)
 	userTokensHistHandler := handler.NewUserTokensHistHandler(tokenHistSvc)
 	loginHandler := handler.NewLoginHandler(loginSvc)
 	sellerHandler := handler.NewSellerHandler(cadastroSvc)
 	produtoHandler := handler.NewProdutoHandler(produtoSvc)
 
+	// Rotas
 	config.SetupRoutes(
 		e,
 		cadastroHandler,

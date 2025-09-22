@@ -13,18 +13,18 @@ func NewLoginRepository(base *BaseRepository) *LoginNewRepository {
 	return &LoginNewRepository{BaseRepository: base}
 }
 
-func (r *LoginNewRepository) CreateLogin(ctx context.Context, arg db.CreateLoginParams) (db.Login, error) {
+func (r *LoginNewRepository) CreateLogin(ctx context.Context, arg db.CreateLoginParams) (db.Cadastro, error) {
 	err := r.GetConnection(ctx)
 	if err != nil {
-		return db.Login{}, err
+		return db.Cadastro{}, err
 	}
 	return r.Queries.CreateLogin(ctx, arg)
 }
 
-func (r *LoginNewRepository) GetLogin(ctx context.Context, arg string) (db.Login, error) {
+func (r *LoginNewRepository) GetLogin(ctx context.Context, arg string) (db.GetLoginRow, error) {
 	err := r.GetConnection(ctx)
 	if err != nil {
-		return db.Login{}, err
+		return db.GetLoginRow{}, err
 	}
 	return r.Queries.GetLogin(ctx, arg)
 }

@@ -17,7 +17,7 @@ type TokenServiceInterface interface {
 
 type LoginServiceInterface interface {
 	LoginUser(ctx context.Context, data model.LoginRequest) (string, error)
-	CreateLoginUser(ctx context.Context, data model.LoginRequest) (db.Login, error)
+	CreateLoginUser(ctx context.Context, data model.LoginRequest) (db.Cadastro, error)
 }
 
 type ProdutoServiceInterface interface {
