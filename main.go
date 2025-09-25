@@ -15,6 +15,7 @@ import (
 )
 
 func main() {
+
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Erro ao carregar .env: ", err)
 	}
@@ -39,26 +40,22 @@ func main() {
 	loginRepo := Repository.NewLoginRepository(baseRepo)
 	sellerRepo := Repository.NewSellerRepository(*baseRepo)
 	produtoRepo := Repository.NewProdutosRepository(baseRepo)
-
-	// Cria Activation Repository
 	activationRepo := Repository.NewActivationNewRepository(baseRepo)
+	sellerRepo = Repository.NewSellerRepository(*baseRepo)
 
 	twilioService := service.NewTwilioService()
-
-	// Serviços
+	sellerService := service.NewSellerService(sellerRepo, activationRepo)
 	cadastroSvc := service.NewCadastroService(cadastroRepo, sellerRepo, twilioService, activationRepo)
 	tokenHistSvc := service.NewUserTokensHistService(tokenHistRepo)
-	loginSvc := service.NewLoginService(loginRepo) // nome corrigido
+	loginSvc := service.NewLoginService(loginRepo)
 	produtoSvc := service.NewProdutoService(produtoRepo)
 
-	// Handlers
 	cadastroHandler := handler.NewCadastroHandler(cadastroSvc)
 	userTokensHistHandler := handler.NewUserTokensHistHandler(tokenHistSvc)
 	loginHandler := handler.NewLoginHandler(loginSvc)
-	sellerHandler := handler.NewSellerHandler(cadastroSvc)
+	sellerHandler := handler.NewSellerHandler(sellerService)
 	produtoHandler := handler.NewProdutoHandler(produtoSvc)
 
-	// Rotas
 	config.SetupRoutes(
 		e,
 		cadastroHandler,

@@ -1,12 +1,12 @@
 CREATE TABLE cadastro (
                           id BIGSERIAL PRIMARY KEY,
                           name VARCHAR(100) NOT NULL,
-                            cpf varchar(100) unique ,
-                          cnpj VARCHAR(20) UNIQUE,
-                          email VARCHAR(100) NOT NULL,
+                          cpf VARCHAR(100) UNIQUE DEFAULT '',
+                          cnpj VARCHAR(20) UNIQUE DEFAULT '',
+                          email VARCHAR(100) NOT NULL UNIQUE,
                           celular VARCHAR(20) NOT NULL,
                           password VARCHAR(100) NOT NULL,
-                          status VARCHAR(20) NOT NULL DEFAULT 'inativo',
-                          activation_code VARCHAR(4),
+                          status VARCHAR(20) NOT NULL DEFAULT 'pendente',
+                          activation_code VARCHAR(10) DEFAULT '',
                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

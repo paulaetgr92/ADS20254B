@@ -1,6 +1,8 @@
 package model
 
 type TwillioModelRequest struct {
-	Code    string `json:"code"`
-	Celular string `json:"celular"`
+	Payload        PayloadDTO `json:"payload"`
+	ActivationCode string     `json:"code"`
+	Status         string     `json:"status"`
+	Celular        string     `json:"Celular"`
 }

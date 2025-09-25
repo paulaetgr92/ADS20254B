@@ -15,17 +15,17 @@ func NewSellerRepository(baseRepo BaseRepository) *SellerRepository {
 	}
 }
 
-func (b *SellerRepository) GetSellerByCNPJ(ctx context.Context, code string) (db.GetSellerByCNPJRow, error) {
-	err := b.GetConnection(ctx)
-	if err != nil {
-		return db.GetSellerByCNPJRow{}, err
-	}
-	return b.Queries.GetSellerByCNPJ(ctx, code)
-}
-
 func (r *SellerRepository) UpdateSellerStatus(ctx context.Context, data db.UpdateCadastroStatusParams) error {
 	if err := r.GetConnection(ctx); err != nil {
 		return err
 	}
 	return r.Queries.UpdateCadastroStatus(ctx, data)
+}
+
+func (r *SellerRepository) UpdateActivationCode(ctx context.Context, arg db.UpdateCadastroStatusParams) (error, error) {
+	err := r.GetConnection(ctx)
+	if err != nil {
+		return err, nil
+	}
+	return r.Queries.UpdateCadastroStatus(ctx, arg), nil
 }

@@ -21,3 +21,10 @@ func (r *ActivationNewRepository) SaveActivationCode(ctx context.Context, data d
 	}
 	return r.Queries.SaveActivationCode(ctx, data)
 }
+
+func (r *ActivationNewRepository) GetActivationCode(ctx context.Context, arg db.GetCadastroByActivationCodeParams) (db.GetCadastroByActivationCodeRow, error) {
+	if err := r.GetConnection(ctx); err != nil {
+		return db.GetCadastroByActivationCodeRow{}, err
+	}
+	return r.Queries.GetCadastroByActivationCode(ctx, arg)
+}

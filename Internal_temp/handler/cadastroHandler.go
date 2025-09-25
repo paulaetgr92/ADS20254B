@@ -33,7 +33,6 @@ func (h *CadastroHandler) CreateCadastro(c echo.Context) error {
 		})
 	}
 
-	// Chama o service para criar cadastro e enviar WhatsApp
 	cadastro, err := h.service.CreateCadastro(c.Request().Context(), req)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
@@ -41,7 +40,6 @@ func (h *CadastroHandler) CreateCadastro(c echo.Context) error {
 		})
 	}
 
-	// Retorna sucesso
 	return c.JSON(http.StatusCreated, map[string]interface{}{
 		"message":  "Cadastro realizado com sucesso! Verifique seu WhatsApp para ativar sua conta.",
 		"cadastro": cadastro,

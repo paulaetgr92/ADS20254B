@@ -13,10 +13,10 @@ func NewLoginRepository(base *BaseRepository) *LoginNewRepository {
 	return &LoginNewRepository{BaseRepository: base}
 }
 
-func (r *LoginNewRepository) CreateLogin(ctx context.Context, arg db.CreateLoginParams) (db.Cadastro, error) {
+func (r *LoginNewRepository) CreateLogin(ctx context.Context, arg db.CreateLoginParams) (db.CreateLoginRow, error) {
 	err := r.GetConnection(ctx)
 	if err != nil {
-		return db.Cadastro{}, err
+		return db.CreateLoginRow{}, err
 	}
 	return r.Queries.CreateLogin(ctx, arg)
 }

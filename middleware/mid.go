@@ -1,14 +1,10 @@
 package middleware
 
 import (
-	"encoding/base64"
-	"fmt"
-	"io"
-	"net/http"
-	"reflect"
 	"time"
 
 	"awesomeProject/Internal_temp/model"
+
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -41,49 +37,4 @@ func GetPayloadToken(c echo.Context) model.PayloadDTO {
 		OrganizationID: strOrganizationID,
 		Document:       strDocument,
 	}
-}
-
-func WhoMapper[T any](data T, payload model.PayloadDTO) (T, error) {
-	v := reflect.ValueOf(data)
-	if v.Kind() != reflect.Struct {
-		return data, fmt.Errorf("input data must be a struct")
-	}
-
-	whoField := v.FieldByName("who")
-	if !whoField.IsValid() {
-		return data, fmt.Errorf("struct doesn't have a field named 'who'")
-	}
-
-	whoField.Set(reflect.ValueOf(payload.UserNickname))
-
-	return data, nil
-}
-
-func DownloadAndConvertToBase64(imageURL string) (string, error) {
-	req, err := http.NewRequest("GET", imageURL, nil)
-	if err != nil {
-		return "", fmt.Errorf("erro ao criar requisição: %w", err)
-	}
-
-	req.Header.Set("User-Agent", "Mozilla/5.0")
-	req.Header.Set("Accept", "image/*")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("erro ao fazer requisição: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("resposta inválida ao baixar imagem: status %d", resp.StatusCode)
-	}
-
-	data, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("erro ao ler dados da imagem: %w", err)
-	}
-
-	base64Str := base64.StdEncoding.EncodeToString(data)
-	return base64Str, nil
 }

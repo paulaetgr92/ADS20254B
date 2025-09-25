@@ -11,37 +11,48 @@ import (
 )
 
 const createLogin = `-- name: CreateLogin :one
-INSERT INTO cadastro (email, password,activation_code)
-VALUES ($1, $2, $3)
-RETURNING id, name, cpf, cnpj, email, celular, password, status, activation_code, created_at
+INSERT INTO cadastro (email, password, activation_code, status)
+VALUES ($1, $2, $3, $4)
+RETURNING id, email, password, activation_code, status, created_at
 `
 
 type CreateLoginParams struct {
 	Email          string
 	Password       string
 	ActivationCode sql.NullString
+	Status         string
 }
 
-func (q *Queries) CreateLogin(ctx context.Context, arg CreateLoginParams) (Cadastro, error) {
-	row := q.db.QueryRowContext(ctx, createLogin, arg.Email, arg.Password, arg.ActivationCode)
-	var i Cadastro
+type CreateLoginRow struct {
+	ID             int64
+	Email          string
+	Password       string
+	ActivationCode sql.NullString
+	Status         string
+	CreatedAt      sql.NullTime
+}
+
+func (q *Queries) CreateLogin(ctx context.Context, arg CreateLoginParams) (CreateLoginRow, error) {
+	row := q.db.QueryRowContext(ctx, createLogin,
+		arg.Email,
+		arg.Password,
+		arg.ActivationCode,
+		arg.Status,
+	)
+	var i CreateLoginRow
 	err := row.Scan(
 		&i.ID,
-		&i.Name,
-		&i.Cpf,
-		&i.Cnpj,
 		&i.Email,
-		&i.Celular,
 		&i.Password,
-		&i.Status,
 		&i.ActivationCode,
+		&i.Status,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getLogin = `-- name: GetLogin :one
-SELECT email, password, activation_code
+SELECT email, password, activation_code,status
 FROM cadastro
 WHERE email = $1
 `
@@ -50,27 +61,17 @@ type GetLoginRow struct {
 	Email          string
 	Password       string
 	ActivationCode sql.NullString
+	Status         string
 }
 
 func (q *Queries) GetLogin(ctx context.Context, email string) (GetLoginRow, error) {
 	row := q.db.QueryRowContext(ctx, getLogin, email)
 	var i GetLoginRow
-	err := row.Scan(&i.Email, &i.Password, &i.ActivationCode)
+	err := row.Scan(
+		&i.Email,
+		&i.Password,
+		&i.ActivationCode,
+		&i.Status,
+	)
 	return i, err
-}
-
-const updateAuthenticationCode = `-- name: UpdateAuthenticationCode :exec
-UPDATE cadastro
-SET activation_code = $2
-WHERE email = $1
-`
-
-type UpdateAuthenticationCodeParams struct {
-	Email          string
-	ActivationCode sql.NullString
-}
-
-func (q *Queries) UpdateAuthenticationCode(ctx context.Context, arg UpdateAuthenticationCodeParams) error {
-	_, err := q.db.ExecContext(ctx, updateAuthenticationCode, arg.Email, arg.ActivationCode)
-	return err
 }

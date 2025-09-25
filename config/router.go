@@ -21,7 +21,7 @@ func SetupRoutes(e *echo.Echo, cadastroHandler *handler2.CadastroHandler, handle
 
 	sellers := api.Group("/sellers")
 	{
-		sellers.POST("/verify", sellerHandler.VerifyCode)
+		sellers.POST("/verify", sellerHandler.VerifySeller)
 	}
 
 	produtos := api.Group("/produtos")

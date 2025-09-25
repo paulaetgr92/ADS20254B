@@ -7,7 +7,6 @@ import (
 	"context"
 	"crypto/rand"
 	"database/sql"
-	"errors"
 	"fmt"
 	"math/big"
 	"os"
@@ -24,25 +23,17 @@ type CadastroService struct {
 	CountryCode string
 }
 
-// Construtor
-func NewCadastroService(
-	cadastroRepo Repository.CadastroRepositoryInterface,
-	sellerRepo Repository.SellerRepositoryInterface,
-	twilioService *TwilioService,
-	repos *Repository.ActivationNewRepository,
-) *CadastroService {
-	countryCode := os.Getenv("DEFAULT_COUNTRY_CODE") // pega da env, ex: "+55"
+func NewCadastroService(cadastroRepo Repository.CadastroRepositoryInterface, repo *Repository.SellerRepository, twilioService *TwilioService, activationRepo *Repository.ActivationNewRepository) *CadastroService {
+	countryCode := os.Getenv("DEFAULT_COUNTRY_CODE")
 
 	return &CadastroService{
 		Repo:        cadastroRepo,
-		R:           sellerRepo,
 		Twilio:      twilioService,
-		Repos:       repos,
+		Repos:       activationRepo,
 		CountryCode: countryCode,
 	}
 }
 
-// Gera código aleatório de 4 dígitos
 func GenerateActivationCode() string {
 	num, err := rand.Int(rand.Reader, big.NewInt(10000))
 	if err != nil {
@@ -51,15 +42,13 @@ func GenerateActivationCode() string {
 	return fmt.Sprintf("%04d", num.Int64())
 }
 
-// Cria cadastro + código de ativação
 func (s *CadastroService) CreateCadastro(ctx context.Context, data model.CadastroRequest) (db.Cadastro, error) {
-	// Hash da senha
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(data.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return db.Cadastro{}, fmt.Errorf("erro ao gerar hash da senha: %w", err)
 	}
 
-	// Cria cadastro no banco
 	arg := db.CreateCadastroParams{
 		Name: data.Name,
 		Cpf: sql.NullString{
@@ -74,6 +63,10 @@ func (s *CadastroService) CreateCadastro(ctx context.Context, data model.Cadastr
 		Celular:  data.Celular,
 		Password: string(hashedPassword),
 		Status:   "pendente",
+		ActivationCode: sql.NullString{
+			String: "",
+			Valid:  true,
+		},
 	}
 
 	cadastro, err := s.Repo.CreateCadastroRepository(ctx, arg)
@@ -81,10 +74,9 @@ func (s *CadastroService) CreateCadastro(ctx context.Context, data model.Cadastr
 		return cadastro, err
 	}
 
-	// Gera código de ativação
 	code := GenerateActivationCode()
 	expiresAt := time.Now().Add(5 * time.Minute)
-	
+
 	params := db.SaveActivationCodeParams{
 		CadastroID: cadastro.ID,
 		Code:       code,
@@ -102,29 +94,4 @@ func (s *CadastroService) CreateCadastro(ctx context.Context, data model.Cadastr
 	}
 
 	return cadastro, nil
-}
-
-// Verifica código de ativação e ativa usuário
-func (s *CadastroService) VerifySeller(ctx context.Context, data model.TwillioModelRequest) error {
-	seller, err := s.R.GetSellerByCNPJ(ctx, data.Celular)
-	if err != nil {
-		return errors.New("seller não encontrado")
-	}
-
-	if !seller.ActivationCode.Valid || data.Code != seller.ActivationCode.String {
-		return errors.New("código inválido")
-	}
-
-	params := db.UpdateCadastroStatusParams{
-		ActivationCode: sql.NullString{
-			String: "",
-			Valid:  false,
-		},
-		Status: "ativo",
-	}
-	if err := s.R.UpdateSellerStatus(ctx, params); err != nil {
-		return errors.New("erro ao ativar conta")
-	}
-
-	return nil
 }

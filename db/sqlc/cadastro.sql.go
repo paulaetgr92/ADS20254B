@@ -11,8 +11,8 @@ import (
 )
 
 const createCadastro = `-- name: CreateCadastro :one
-INSERT INTO cadastro (name, cpf, cnpj, email, celular, password, status,activation_code,created_at)
-VALUES ($1, $2, $3,$4, $5, $6, $7,$8, now())
+INSERT INTO cadastro (name, cpf, cnpj, email, celular, password, status, activation_code)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING id, name, cpf, cnpj, email, celular, password, status, activation_code, created_at
 `
 
@@ -54,6 +54,40 @@ func (q *Queries) CreateCadastro(ctx context.Context, arg CreateCadastroParams) 
 	return i, err
 }
 
+const getCadastroByActivationCode = `-- name: GetCadastroByActivationCode :one
+SELECT id, name, email, celular, status, activation_code
+FROM cadastro
+WHERE activation_code = $1 and id=$2
+`
+
+type GetCadastroByActivationCodeParams struct {
+	ActivationCode sql.NullString
+	ID             int64
+}
+
+type GetCadastroByActivationCodeRow struct {
+	ID             int64
+	Name           string
+	Email          string
+	Celular        string
+	Status         string
+	ActivationCode sql.NullString
+}
+
+func (q *Queries) GetCadastroByActivationCode(ctx context.Context, arg GetCadastroByActivationCodeParams) (GetCadastroByActivationCodeRow, error) {
+	row := q.db.QueryRowContext(ctx, getCadastroByActivationCode, arg.ActivationCode, arg.ID)
+	var i GetCadastroByActivationCodeRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Celular,
+		&i.Status,
+		&i.ActivationCode,
+	)
+	return i, err
+}
+
 const getSellerByCNPJ = `-- name: GetSellerByCNPJ :one
 SELECT id, name, email, celular, password, status, activation_code, created_at
 FROM cadastro
@@ -87,36 +121,18 @@ func (q *Queries) GetSellerByCNPJ(ctx context.Context, celular string) (GetSelle
 	return i, err
 }
 
-const updateActivationCode = `-- name: UpdateActivationCode :exec
-UPDATE cadastro
-SET activation_code = $2,
-    status = $3
-WHERE celular = $1
-`
-
-type UpdateActivationCodeParams struct {
-	Celular        string
-	ActivationCode sql.NullString
-	Status         string
-}
-
-func (q *Queries) UpdateActivationCode(ctx context.Context, arg UpdateActivationCodeParams) error {
-	_, err := q.db.ExecContext(ctx, updateActivationCode, arg.Celular, arg.ActivationCode, arg.Status)
-	return err
-}
-
 const updateCadastroStatus = `-- name: UpdateCadastroStatus :exec
 UPDATE cadastro
 SET status = $2
-WHERE activation_code= $1
+WHERE id = $1
 `
 
 type UpdateCadastroStatusParams struct {
-	ActivationCode sql.NullString
-	Status         string
+	ID     int64
+	Status string
 }
 
 func (q *Queries) UpdateCadastroStatus(ctx context.Context, arg UpdateCadastroStatusParams) error {
-	_, err := q.db.ExecContext(ctx, updateCadastroStatus, arg.ActivationCode, arg.Status)
+	_, err := q.db.ExecContext(ctx, updateCadastroStatus, arg.ID, arg.Status)
 	return err
 }

@@ -22,11 +22,3 @@ func (r *CadastroNewRepository) CreateCadastroRepository(ctx context.Context, ar
 	}
 	return r.Queries.CreateCadastro(ctx, arg)
 }
-
-func (r *CadastroNewRepository) UpdateActivationCode(ctx context.Context, arg db.UpdateActivationCodeParams) error {
-	err := r.GetConnection(ctx)
-	if err != nil {
-		return err
-	}
-	return r.Queries.UpdateActivationCode(ctx, arg)
-}
