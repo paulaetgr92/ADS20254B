@@ -1,34 +1,29 @@
-version: "3.9"
+
 
 services:
-  go_postgres:
+  app:
+    build: .
+    container_name: awesome_api
+    ports:
+      - "8081:8080"
+    env_file:
+      - .env
+    depends_on:
+      - db
+    restart: always
+
+  db:
     image: postgres:15
+    container_name: awesome_db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: hoot
       POSTGRES_DB: meu_banco
-    volumes:
-      - ads20254b_db_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  go_app:
-    build: .
-    environment:
-      DB_HOST: go_postgres
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: hoot
-      DB_NAME: meu_banco
-    depends_on:
-      go_postgres:
-        condition: service_healthy
     ports:
-      - "8080:8080"
-    restart: on-failure
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    restart: always
 
 volumes:
-  ads20254b_db_data:
+  db_data:
