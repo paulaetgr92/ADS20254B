@@ -1,5 +1,5 @@
 -- name: GetProdutoById :one
-SELECT categoria, tamanho, cores, localizacao
+SELECT id_roupa,categoria, tamanho, cores, localizacao, tempo_valor, status
 FROM produto
 WHERE id_roupa = $1;
 
@@ -25,15 +25,20 @@ WHERE id_roupa = $7
 RETURNING *;
 
 
--- name: DeleteProdutoByID :one
+-- name: InativarProdutoByID :exec
 UPDATE produto
-SET categoria = $1,
-    tamanho = $2,
-    cores = $3,
-    tempo_valor = $4,
-    status = $5,
-    localizacao = $6
-WHERE id_roupa = $7 and status = true
-RETURNING *;
+SET status = 'inativo'
+WHERE id_roupa = $1;
 
 
+
+-- name: ListProducts :many
+SELECT *
+FROM produto
+WHERE status ='Disponível';
+
+
+
+
+-- name: GetAllProdutos :many
+SELECT * FROM produto ORDER BY id_roupa DESC;

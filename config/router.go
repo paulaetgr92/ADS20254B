@@ -19,14 +19,13 @@ func SetupRoutes(e *echo.Echo, cadastroHandler *handler2.CadastroHandler, handle
 		login.POST("", loginHandler.Login)
 	}
 
-	sellers := api.Group("/sellers")
-	{
-		sellers.POST("/verify", sellerHandler.VerifySeller)
-	}
-
 	produtos := api.Group("/produtos")
 	{
-		produtos.POST("", produtoHandler.CreateProductHandler)
+		produtos.POST("", produtoHandler.CreateProductHandler) // Criar produto
+		produtos.GET("", produtoHandler.ListProdutosHandler)
+		produtos.GET("/:id", produtoHandler.GetProductByIdHandler)           // Buscar por ID
+		produtos.PUT("/:id", produtoHandler.UpdateProdutoByIdHandler)        // Atualizar produto
+		produtos.PUT("/:id/inativar", produtoHandler.InativarProdutoHandler) // Inativar produto
 	}
 
 	api.GET("/health", func(c echo.Context) error {

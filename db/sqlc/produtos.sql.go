@@ -84,49 +84,39 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (i
 	return id_roupa, err
 }
 
-const deleteProdutoByID = `-- name: DeleteProdutoByID :one
-UPDATE produto
-SET categoria = $1,
-    tamanho = $2,
-    cores = $3,
-    tempo_valor = $4,
-    status = $5,
-    localizacao = $6
-WHERE id_roupa = $7 and status = true
-RETURNING id_roupa, categoria, tamanho, cores, tempo_valor, status, localizacao
+const getAllProdutos = `-- name: GetAllProdutos :many
+SELECT id_roupa, categoria, tamanho, cores, tempo_valor, status, localizacao FROM produto ORDER BY id_roupa DESC
 `
 
-type DeleteProdutoByIDParams struct {
-	Categoria   string
-	Tamanho     string
-	Cores       sql.NullString
-	TempoValor  sql.NullFloat64
-	Status      sql.NullString
-	Localizacao sql.NullString
-	IDRoupa     int64
-}
-
-func (q *Queries) DeleteProdutoByID(ctx context.Context, arg DeleteProdutoByIDParams) (Produto, error) {
-	row := q.db.QueryRowContext(ctx, deleteProdutoByID,
-		arg.Categoria,
-		arg.Tamanho,
-		arg.Cores,
-		arg.TempoValor,
-		arg.Status,
-		arg.Localizacao,
-		arg.IDRoupa,
-	)
-	var i Produto
-	err := row.Scan(
-		&i.IDRoupa,
-		&i.Categoria,
-		&i.Tamanho,
-		&i.Cores,
-		&i.TempoValor,
-		&i.Status,
-		&i.Localizacao,
-	)
-	return i, err
+func (q *Queries) GetAllProdutos(ctx context.Context) ([]Produto, error) {
+	rows, err := q.db.QueryContext(ctx, getAllProdutos)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Produto
+	for rows.Next() {
+		var i Produto
+		if err := rows.Scan(
+			&i.IDRoupa,
+			&i.Categoria,
+			&i.Tamanho,
+			&i.Cores,
+			&i.TempoValor,
+			&i.Status,
+			&i.Localizacao,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getProdutoByDisponibilidade = `-- name: GetProdutoByDisponibilidade :many
@@ -171,26 +161,80 @@ func (q *Queries) GetProdutoByDisponibilidade(ctx context.Context, arg GetProdut
 }
 
 const getProdutoById = `-- name: GetProdutoById :one
-SELECT categoria, tamanho, cores, localizacao
+SELECT id_roupa,categoria, tamanho, cores, localizacao, tempo_valor, status
 FROM produto
 WHERE id_roupa = $1
 `
 
 type GetProdutoByIdRow struct {
+	IDRoupa     int64
 	Categoria   string
 	Tamanho     string
 	Cores       sql.NullString
 	Localizacao sql.NullString
+	TempoValor  sql.NullFloat64
+	Status      sql.NullString
 }
 
 func (q *Queries) GetProdutoById(ctx context.Context, idRoupa int64) (GetProdutoByIdRow, error) {
 	row := q.db.QueryRowContext(ctx, getProdutoById, idRoupa)
 	var i GetProdutoByIdRow
 	err := row.Scan(
+		&i.IDRoupa,
 		&i.Categoria,
 		&i.Tamanho,
 		&i.Cores,
 		&i.Localizacao,
+		&i.TempoValor,
+		&i.Status,
 	)
 	return i, err
+}
+
+const inativarProdutoByID = `-- name: InativarProdutoByID :exec
+UPDATE produto
+SET status = 'inativo'
+WHERE id_roupa = $1
+`
+
+func (q *Queries) InativarProdutoByID(ctx context.Context, idRoupa int64) error {
+	_, err := q.db.ExecContext(ctx, inativarProdutoByID, idRoupa)
+	return err
+}
+
+const listProducts = `-- name: ListProducts :many
+SELECT id_roupa, categoria, tamanho, cores, tempo_valor, status, localizacao
+FROM produto
+WHERE status ='Disponível'
+`
+
+func (q *Queries) ListProducts(ctx context.Context) ([]Produto, error) {
+	rows, err := q.db.QueryContext(ctx, listProducts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Produto
+	for rows.Next() {
+		var i Produto
+		if err := rows.Scan(
+			&i.IDRoupa,
+			&i.Categoria,
+			&i.Tamanho,
+			&i.Cores,
+			&i.TempoValor,
+			&i.Status,
+			&i.Localizacao,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

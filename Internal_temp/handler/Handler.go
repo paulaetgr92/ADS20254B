@@ -18,7 +18,10 @@ type CreateLoginHandlerInterface interface {
 type twillioHandlerInterface interface {
 	VerifyCode(c echo.Context) error
 }
-
-type produtoHandlerInterface interface {
+type ProdutoHandlerInterface interface {
 	CreateProductHandler(c echo.Context) error
+	InativarProdutoHandler(c echo.Context) error
+	UpdateProdutoByIdHandler(c echo.Context) error
+	ListProdutosHandler(c echo.Context) error
+	GetProductByIdHandler(c echo.Context) error
 }

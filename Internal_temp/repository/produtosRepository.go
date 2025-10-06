@@ -45,11 +45,19 @@ func (r *ProdutosNewRepository) AtualizarProduto(ctx context.Context, arg db.Atu
 	return r.Queries.AtualizarProdutoByID(ctx, arg)
 }
 
-func (r *ProdutosNewRepository) DeleteProdutoByIdRepository(ctx context.Context, arg db.DeleteProdutoByIDParams) (db.Produto, error) {
+func (r *ProdutosNewRepository) DeleteProdutoByIdRepository(ctx context.Context, Id int64) error {
 	err := r.GetConnection(ctx)
 	if err != nil {
-		return db.Produto{}, err
+		return err
 	}
-	return r.Queries.DeleteProdutoByID(ctx, arg)
+	return r.Queries.InativarProdutoByID(ctx, Id)
+}
 
+func (r *ProdutosNewRepository) GetProdutoRepository(ctx context.Context) ([]db.Produto, error) {
+	err := r.GetConnection(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.Queries.ListProducts(ctx)
 }

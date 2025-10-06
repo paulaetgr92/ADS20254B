@@ -25,11 +25,11 @@ type SellerRepositoryInterface interface {
 }
 
 type ProdutoRepositoryInterface interface {
-	DeleteProdutoByIdRepository(ctx context.Context, arg db.DeleteProdutoByIDParams) (db.Produto, error)
+	DeleteProdutoByIdRepository(ctx context.Context, Id int64) error
 	AtualizarProduto(ctx context.Context, arg db.AtualizarProdutoByIDParams) (db.Produto, error)
-	GetProdutoByDisponibilidade(ctx context.Context, arg db.GetProdutoByDisponibilidadeParams) ([]db.GetProdutoByDisponibilidadeRow, error)
 	GetProdutoByIdRepository(ctx context.Context, arg int64) (db.GetProdutoByIdRow, error)
 	CreateProdutoRepository(ctx context.Context, arg db.CreateProductParams) (int64, error)
+	GetProdutoRepository(ctx context.Context) ([]db.Produto, error)
 }
 
 type ActivationCodeRepositoryInterface interface {

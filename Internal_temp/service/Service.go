@@ -21,6 +21,10 @@ type LoginServiceInterface interface {
 
 type ProdutoServiceInterface interface {
 	CreateProduct(ctx context.Context, data model.ProdutosRequest) (int64, error)
+	GetProdutoByIdService(ctx context.Context, id int64) (model.GetProdutosByIdResponse, error)
+	ListProdutoService(ctx context.Context) ([]model.ProdutosResponse, error)
+	UpdateProdutoByIdService(ctx context.Context, id int64, data model.ProdutosRequest) (model.ProdutosResponse, error)
+	DeleteProdutoByIdService(ctx context.Context, data int64) error
 }
 
 type SellerServiceInterface interface {
