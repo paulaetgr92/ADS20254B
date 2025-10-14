@@ -36,3 +36,7 @@ type ActivationCodeRepositoryInterface interface {
 	SaveActivationCode(ctx context.Context, data db.SaveActivationCodeParams) error
 	GetActivationCode(ctx context.Context, arg db.GetCadastroByActivationCodeParams) (db.GetCadastroByActivationCodeRow, error)
 }
+
+type CreateSaleInterface interface {
+	CreateSale(ctx context.Context, arg db.CreateSaleParams) (db.Sale, error)
+}

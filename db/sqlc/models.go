@@ -40,6 +40,15 @@ type Produto struct {
 	Localizacao sql.NullString
 }
 
+type Sale struct {
+	ID         int32
+	ProdutoID  int64
+	Quantidade int32
+	TempoValor string
+	Total      sql.NullString
+	DataVenda  sql.NullTime
+}
+
 type Token struct {
 	ID        int64
 	UserID    int64

@@ -6,7 +6,15 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func SetupRoutes(e *echo.Echo, cadastroHandler *handler2.CadastroHandler, handler *handler2.UserTokensHistHandler, loginHandler *handler2.LoginHandler, sellerHandler *handler2.SellerHandler, produtoHandler *handler2.ProdutoHandler) {
+func SetupRoutes(
+	e *echo.Echo,
+	cadastroHandler *handler2.CadastroHandler,
+	handler *handler2.UserTokensHistHandler,
+	loginHandler *handler2.LoginHandler,
+	sellerHandler *handler2.SellerHandler,
+	produtoHandler *handler2.ProdutoHandler,
+	salesHandler *handler2.SaleHandler,
+) {
 	api := e.Group("/api/v1")
 
 	cadastros := api.Group("/cadastros")
@@ -21,11 +29,17 @@ func SetupRoutes(e *echo.Echo, cadastroHandler *handler2.CadastroHandler, handle
 
 	produtos := api.Group("/produtos")
 	{
-		produtos.POST("", produtoHandler.CreateProductHandler) // Criar produto
+		produtos.POST("", produtoHandler.CreateProductHandler)
 		produtos.GET("", produtoHandler.ListProdutosHandler)
-		produtos.GET("/:id", produtoHandler.GetProductByIdHandler)           // Buscar por ID
-		produtos.PUT("/:id", produtoHandler.UpdateProdutoByIdHandler)        // Atualizar produto
-		produtos.PUT("/:id/inativar", produtoHandler.InativarProdutoHandler) // Inativar produto
+		produtos.GET("/:id", produtoHandler.GetProductByIdHandler)
+		produtos.PUT("/:id", produtoHandler.UpdateProdutoByIdHandler)
+		produtos.PUT("/:id/inativar", produtoHandler.InativarProdutoHandler)
+	}
+
+	vendas := api.Group("/sales")
+	{
+		vendas.POST("", salesHandler.CreateSale)
+
 	}
 
 	api.GET("/health", func(c echo.Context) error {

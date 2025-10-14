@@ -42,6 +42,7 @@ func main() {
 	produtoRepo := Repository.NewProdutosRepository(baseRepo)
 	activationRepo := Repository.NewActivationNewRepository(baseRepo)
 	sellerRepo = Repository.NewSellerRepository(*baseRepo)
+	salerRepo := *Repository.NewSalesRepository(baseRepo)
 
 	twilioService := service.NewTwilioService()
 	sellerService := service.NewSellerService(sellerRepo, activationRepo)
@@ -49,12 +50,14 @@ func main() {
 	tokenHistSvc := service.NewUserTokensHistService(tokenHistRepo)
 	loginSvc := service.NewLoginService(loginRepo)
 	produtoSvc := service.NewProdutoService(produtoRepo)
+	salesSvc := service.NewSaleService(salerRepo)
 
 	cadastroHandler := handler.NewCadastroHandler(cadastroSvc)
 	userTokensHistHandler := handler.NewUserTokensHistHandler(tokenHistSvc)
 	loginHandler := handler.NewLoginHandler(loginSvc)
 	sellerHandler := handler.NewSellerHandler(sellerService)
 	produtoHandler := handler.NewProdutoHandler(produtoSvc)
+	salesHandler := handler.NewSaleHandler(salesSvc)
 
 	config.SetupRoutes(
 		e,
@@ -63,6 +66,7 @@ func main() {
 		loginHandler,
 		sellerHandler,
 		produtoHandler,
+		salesHandler,
 	)
 
 	log.Println("Servidor rodando na porta 8080")

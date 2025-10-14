@@ -25,3 +25,7 @@ type ProdutoHandlerInterface interface {
 	ListProdutosHandler(c echo.Context) error
 	GetProductByIdHandler(c echo.Context) error
 }
+
+type SaleHandlerInterface interface {
+	CreateSale(c echo.Context) error
+}

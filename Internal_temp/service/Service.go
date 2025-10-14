@@ -30,3 +30,7 @@ type ProdutoServiceInterface interface {
 type SellerServiceInterface interface {
 	VerifySeller(ctx context.Context, ActivationCode int64) (string, error)
 }
+
+type SaleServiceInterface interface {
+	CreateSale(ctx context.Context, request model.SaleRequest) (db.Sale, error)
+}
