@@ -1,5 +1,5 @@
-export async function apiFetch(endpoint, options = {}) {
-  const token = localStorage.getItem("token");
+export async function apiFetch(endpoint, options = {}, authToken = null) {
+  const token = authToken || localStorage.getItem("token");
   const headers = {
     "Content-Type": "application/json",
     ...(token && { Authorization: `Bearer ${token}` }),
@@ -31,4 +31,39 @@ export async function apiFetch(endpoint, options = {}) {
   }
 
   return data;
+}
+
+export async function createAdmin(adminData) {
+  return apiFetch("admin/create", {
+    method: "POST",
+    body: JSON.stringify(adminData),
+  });
+}
+
+export async function loginAdmin(credentials) {
+  return apiFetch("admin/login", {
+    method: "POST",
+    body: JSON.stringify(credentials),
+  });
+}
+
+export async function createSale(saleData, adminToken) {
+  return apiFetch(
+    "sales",
+    {
+      method: "POST",
+      body: JSON.stringify(saleData),
+    },
+    adminToken
+  );
+}
+
+export async function listAllProducts(adminToken) {
+  return apiFetch(
+    "admin/produtos",
+    {
+      method: "GET",
+    },
+    adminToken
+  );
 }

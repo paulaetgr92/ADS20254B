@@ -14,6 +14,7 @@ func SetupRoutes(
 	sellerHandler *handler2.SellerHandler,
 	produtoHandler *handler2.ProdutoHandler,
 	salesHandler *handler2.SaleHandler,
+	adminHandler *handler2.AdminHandler,
 ) {
 	api := e.Group("/api/v1")
 
@@ -34,6 +35,12 @@ func SetupRoutes(
 		produtos.GET("/:id", produtoHandler.GetProductByIdHandler)
 		produtos.PUT("/:id", produtoHandler.UpdateProdutoByIdHandler)
 		produtos.PUT("/:id/inativar", produtoHandler.InativarProdutoHandler)
+	}
+
+	admin := api.Group("/admin")
+	{
+		admin.POST("/create", adminHandler.CreateAdminHandler)
+		admin.POST("/login", adminHandler.CreateLoginAdminHandler)
 	}
 
 	vendas := api.Group("/sales")

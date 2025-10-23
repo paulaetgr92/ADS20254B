@@ -8,6 +8,7 @@ type ProdutosRequest struct {
 	TempoValor  int64  `json:"tempoValor"`
 	Status      string `json:"status"`
 	Localizacao string `json:"localizacao"`
+	ImagemUrl   string `json:"imagem_url"`
 }
 
 type ProdutosResponse struct {
@@ -17,7 +18,9 @@ type ProdutosResponse struct {
 	Tamanho     string `json:"tamanho"`
 	Cores       string `json:"cores"`
 	TempoValor  int64  `json:"tempoValor"`
+	Status      string `json:"status"`
 	Localizacao string `json:"localizacao"`
+	ImagemUrl   string `json:"imagem_url"`
 	Ativo       bool   `json:"ativo"`
 }
 
@@ -27,6 +30,8 @@ type GetProdutosByIdResponse struct {
 	Tamanho     string `json:"tamanho"`
 	Cores       string `json:"cores"`
 	TempoValor  int64  `json:"tempoValor"`
+	Status      string `json:"status"`
 	Localizacao string `json:"localizacao"`
+	ImagemUrl   string `json:"imagem_url"`
 	Ativo       bool   `json:"ativo"`
 }

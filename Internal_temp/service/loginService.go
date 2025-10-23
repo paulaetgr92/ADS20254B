@@ -47,9 +47,7 @@ func (s *LoginService) LoginUser(ctx context.Context, data model.LoginRequest) (
 		return "", errors.New("usuário ou senha inválidos")
 	}
 
-	if user.Status != "ativo" {
-		return "", errors.New("conta pendente: finalize a ativação antes de fazer login")
-	}
+
 
 	claims := jwt.MapClaims{
 		"email": user.Email,

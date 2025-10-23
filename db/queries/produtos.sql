@@ -1,11 +1,11 @@
 -- name: GetProdutoById :one
-SELECT id_roupa,categoria, tamanho, cores, localizacao, tempo_valor, status
+SELECT id_roupa, categoria, tamanho, cores, localizacao, tempo_valor, status, imagem_url
 FROM produto
 WHERE id_roupa = $1;
 
 -- name: CreateProduct :one
-INSERT INTO produto (categoria, tamanho, cores, tempo_valor, status, localizacao)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO produto (categoria, tamanho, cores, tempo_valor, status, localizacao, imagem_url)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING id_roupa;
 
 -- name: GetProdutoByDisponibilidade :many
@@ -20,8 +20,9 @@ SET categoria = $1,
     cores = $3,
     tempo_valor = $4,
     status = $5,
-    localizacao = $6
-WHERE id_roupa = $7
+    localizacao = $6,
+    imagem_url = $7
+WHERE id_roupa = $8
 RETURNING *;
 
 
@@ -34,8 +35,7 @@ WHERE id_roupa = $1;
 
 -- name: ListProducts :many
 SELECT *
-FROM produto
-WHERE status ='Disponível';
+FROM produto;
 
 
 
