@@ -1,30 +1,19 @@
 import { useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import ModernLogin from "./components/ModernLogin";
 import ModernCadastro from "./components/ModernCadastro";
-import AdminLogin from "./components/AdminLogin";
-import AdminCadastro from "./components/AdminCadastro";
 import RentalDashboard from "./components/RentalDashboard";
-import AdminDashboard from "./components/AdminDashboard";
+import RentClothingPage from "./components/RentClothingPage"; // ← nova página importada
 import "./App.css";
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("token") || "");
-  const [adminToken, setAdminToken] = useState(
-    localStorage.getItem("adminToken") || ""
-  );
   const [currentView, setCurrentView] = useState("login");
-  const [isAdminMode, setIsAdminMode] = useState(false);
 
   const handleLogout = () => {
     setToken("");
     localStorage.removeItem("token");
     localStorage.removeItem("userEmail");
-  };
-
-  const handleAdminLogout = () => {
-    setAdminToken("");
-    localStorage.removeItem("adminToken");
-    localStorage.removeItem("adminEmail");
   };
 
   const switchToLogin = () => {
@@ -35,55 +24,45 @@ function App() {
     setCurrentView("cadastro");
   };
 
-  const switchToAdminLogin = () => {
-    setCurrentView("adminLogin");
-  };
-
-  const switchToAdminCadastro = () => {
-    setCurrentView("adminCadastro");
-  };
-
-  const toggleMode = () => {
-    setIsAdminMode(!isAdminMode);
-    setCurrentView(isAdminMode ? "login" : "adminLogin");
-  };
-
-  if (adminToken) {
-    return (
-      <AdminDashboard adminToken={adminToken} onLogout={handleAdminLogout} />
-    );
-  }
-
-  if (token) {
-    return <RentalDashboard token={token} onLogout={handleLogout} />;
-  }
-
   return (
-    <div className="App">
-      <div className="mode-toggle">
-        <button onClick={toggleMode} className="toggle-btn">
-          {isAdminMode ? "👤 Área do Cliente" : "🔧 Área Admin"}
-        </button>
-      </div>
-
-      {isAdminMode ? (
-        currentView === "adminLogin" ? (
-          <AdminLogin
-            setAdminToken={setAdminToken}
-            switchToAdminCadastro={switchToAdminCadastro}
-          />
+    <Router>
+      <Routes>
+        {/* 🔐 Rota de login/cadastro */}
+        {!token ? (
+          <>
+            <Route
+              path="/"
+              element={
+                currentView === "login" ? (
+                  <ModernLogin setToken={setToken} switchToCadastro={switchToCadastro} />
+                ) : (
+                  <ModernCadastro setToken={setToken} switchToLogin={switchToLogin} />
+                )
+              }
+            />
+            {/* Redireciona qualquer outra rota para login se não tiver token */}
+            <Route path="*" element={<Navigate to="/" />} />
+          </>
         ) : (
-          <AdminCadastro
-            setAdminToken={setAdminToken}
-            switchToAdminLogin={switchToAdminLogin}
-          />
-        )
-      ) : currentView === "login" ? (
-        <ModernLogin setToken={setToken} switchToCadastro={switchToCadastro} />
-      ) : (
-        <ModernCadastro setToken={setToken} switchToLogin={switchToLogin} />
-      )}
-    </div>
+          <>
+            {/* 🏠 Dashboard principal */}
+            <Route
+              path="/dashboard"
+              element={<RentalDashboard token={token} onLogout={handleLogout} />}
+            />
+
+            {/* 👕 Nova página de aluguel de roupa */}
+            <Route
+              path="/alugar/:id"
+              element={<RentClothingPage token={token} onLogout={handleLogout} />}
+            />
+
+            {/* Se o usuário tentar acessar "/" redireciona pro dashboard */}
+            <Route path="*" element={<Navigate to="/dashboard" />} />
+          </>
+        )}
+      </Routes>
+    </Router>
   );
 }
 
