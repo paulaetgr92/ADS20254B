@@ -16,52 +16,57 @@ import (
 
 func main() {
 
+	// 📂 Carrega variáveis de ambiente
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Erro ao carregar .env: ", err)
 	}
 
+	// 🚀 Inicializa Echo
 	e := echo.New()
 
+	// 🔐 Configura CORS
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 		AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.DELETE, echo.OPTIONS},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
 	}))
 
+	// 🧩 Conexão com o banco
 	conn, err := dataSrc.Connect()
 	if err != nil {
 		log.Fatal("Erro ao conectar ao banco: ", err)
 	}
 	queries := dbsqlc.New(conn)
 
+	// 🧱 Repositórios
 	baseRepo := Repository.NewBaseRepository(queries, conn)
 	cadastroRepo := Repository.NewCadastroNewRepository(baseRepo)
 	tokenHistRepo := Repository.NewUserTokensHistRepository(*baseRepo)
 	loginRepo := Repository.NewLoginRepository(baseRepo)
-	sellerRepo := Repository.NewSellerRepository(*baseRepo)
+	sellerRepo := Repository.NewSellerRepository(queries)
 	produtoRepo := Repository.NewProdutosRepository(baseRepo)
+	salesRepo := Repository.NewSalesRepository(baseRepo)
+	adminRepo := Repository.NewAdminRepository(baseRepo)
 	activationRepo := Repository.NewActivationNewRepository(baseRepo)
-	sellerRepo = Repository.NewSellerRepository(*baseRepo)
-	salerRepo := *Repository.NewSalesRepository(baseRepo)
-	AdminRepo := *Repository.NewAdminRepository(baseRepo)
 
-	twilioService := service.NewTwilioService()
 	sellerService := service.NewSellerService(sellerRepo, activationRepo)
-	cadastroSvc := service.NewCadastroService(cadastroRepo, sellerRepo, twilioService, activationRepo)
-	tokenHistSvc := service.NewUserTokensHistService(tokenHistRepo)
-	loginSvc := service.NewLoginService(loginRepo)
-	produtoSvc := service.NewProdutoService(produtoRepo)
-	salesSvc := service.NewSaleService(salerRepo)
-	CreateAdmin := service.NewAdminService(AdminRepo, produtoSvc)
+	cadastroService := service.NewCadastroService(cadastroRepo, activationRepo)
+	tokenHistService := service.NewUserTokensHistService(tokenHistRepo)
+	loginService := service.NewLoginService(loginRepo)
+	produtoService := service.NewProdutoService(produtoRepo)
+	salesService := service.NewSaleService(*salesRepo)
+	adminService := service.NewAdminService(*adminRepo, produtoService)
 
-	cadastroHandler := handler.NewCadastroHandler(cadastroSvc)
-	userTokensHistHandler := handler.NewUserTokensHistHandler(tokenHistSvc)
-	loginHandler := handler.NewLoginHandler(loginSvc)
+	// 🎮 Handlers
+	cadastroHandler := handler.NewCadastroHandler(cadastroService)
+	userTokensHistHandler := handler.NewUserTokensHistHandler(tokenHistService)
+	loginHandler := handler.NewLoginHandler(loginService)
 	sellerHandler := handler.NewSellerHandler(sellerService)
-	produtoHandler := handler.NewProdutoHandler(produtoSvc)
-	salesHandler := handler.NewSaleHandler(salesSvc)
-	AdminHandler := handler.NewAdminHandler(CreateAdmin)
+	produtoHandler := handler.NewProdutoHandler(produtoService)
+	salesHandler := handler.NewSaleHandler(salesService)
+	adminHandler := handler.NewAdminHandler(adminService)
 
+	// 🛣️ Rotas
 	config.SetupRoutes(
 		e,
 		cadastroHandler,
@@ -70,11 +75,13 @@ func main() {
 		sellerHandler,
 		produtoHandler,
 		salesHandler,
-		AdminHandler,
+		adminHandler,
 	)
 
-	e.GET("/admin/produtos", AdminHandler.ListAllProdutosAdminHandler)
+	// 🔎 Rota extra admin
+	e.GET("/admin/produtos", adminHandler.ListAllProdutosAdminHandler)
 
-	log.Println("Servidor rodando na porta 8080")
-	e.Logger.Fatal(e.Start("0.0.0.0:8080"))
+	// 🖥️ Inicia servidor
+	log.Println("🚀 Servidor rodando na porta 8080")
+	e.Logger.Fatal(e.Start(":8080"))
 }

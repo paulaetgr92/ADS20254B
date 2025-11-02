@@ -1,1 +1,1 @@
-drop table activation_codes
+drop table activation_code

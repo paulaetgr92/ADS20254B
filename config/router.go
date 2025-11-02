@@ -9,7 +9,7 @@ import (
 func SetupRoutes(
 	e *echo.Echo,
 	cadastroHandler *handler2.CadastroHandler,
-	handler *handler2.UserTokensHistHandler,
+	userTokenHandler *handler2.UserTokensHistHandler,
 	loginHandler *handler2.LoginHandler,
 	sellerHandler *handler2.SellerHandler,
 	produtoHandler *handler2.ProdutoHandler,
@@ -18,16 +18,26 @@ func SetupRoutes(
 ) {
 	api := e.Group("/api/v1")
 
+	// 📁 Cadastro
 	cadastros := api.Group("/cadastros")
 	{
 		cadastros.POST("", cadastroHandler.CreateCadastro)
 	}
 
+	// 📁 Sellers
+	sellers := api.Group("/sellers")
+	{
+		sellers.POST("", sellerHandler.CreateSeller)
+		sellers.POST("/verify", sellerHandler.VerifySeller)
+	}
+
+	// 📁 Login
 	login := api.Group("/login")
 	{
 		login.POST("", loginHandler.Login)
 	}
 
+	// 📁 Produtos
 	produtos := api.Group("/produtos")
 	{
 		produtos.POST("", produtoHandler.CreateProductHandler)
@@ -37,18 +47,20 @@ func SetupRoutes(
 		produtos.PUT("/:id/inativar", produtoHandler.InativarProdutoHandler)
 	}
 
+	// 📁 Admin
 	admin := api.Group("/admin")
 	{
 		admin.POST("/create", adminHandler.CreateAdminHandler)
 		admin.POST("/login", adminHandler.CreateLoginAdminHandler)
 	}
 
+	// 📁 Vendas
 	vendas := api.Group("/sales")
 	{
 		vendas.POST("", salesHandler.CreateSale)
-
 	}
 
+	// 📌 Health Check
 	api.GET("/health", func(c echo.Context) error {
 		return c.JSON(200, map[string]string{"status": "ok"})
 	})

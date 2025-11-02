@@ -7,6 +7,6 @@ CREATE TABLE cadastro (
                           celular VARCHAR(20) NOT NULL,
                           password VARCHAR(100) NOT NULL,
                           status VARCHAR(20) NOT NULL DEFAULT 'pendente',
-                          activation_code VARCHAR(10) DEFAULT '',
+                          activation_code VARCHAR,
                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

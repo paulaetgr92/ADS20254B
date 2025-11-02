@@ -15,11 +15,11 @@ func NewActivationNewRepository(base *BaseRepository) *ActivationNewRepository {
 	}
 }
 
-func (r *ActivationNewRepository) SaveActivationCode(ctx context.Context, data db.SaveActivationCodeParams) error {
+func (r *ActivationNewRepository) SaveActivationCode(ctx context.Context, arg db.SaveActivationCodeParams) error {
 	if err := r.GetConnection(ctx); err != nil {
 		return err
 	}
-	return r.Queries.SaveActivationCode(ctx, data)
+	return r.Queries.SaveActivationCode(ctx, arg)
 }
 
 func (r *ActivationNewRepository) GetActivationCode(ctx context.Context, arg db.GetCadastroByActivationCodeParams) (db.GetCadastroByActivationCodeRow, error) {

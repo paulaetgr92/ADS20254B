@@ -17,5 +17,6 @@ WHERE activation_code = $1 and id=$2;
 
 -- name: UpdateCadastroStatus :exec
 UPDATE cadastro
-SET status = $2
+SET status = $2,
+    updated_at = NOW()
 WHERE id = $1;

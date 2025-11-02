@@ -1,6 +1,7 @@
 package Repository
 
 import (
+	"awesomeProject/Internal_temp/model"
 	db "awesomeProject/db/sqlc"
 	"context"
 )
@@ -19,11 +20,6 @@ type CreateLoginRepositoryInterface interface {
 	GetLogin(ctx context.Context, arg string) (db.GetLoginRow, error)
 }
 
-type SellerRepositoryInterface interface {
-	UpdateSellerStatus(ctx context.Context, data db.UpdateCadastroStatusParams) error
-	UpdateActivationCode(ctx context.Context, arg db.UpdateCadastroStatusParams) (error, error)
-}
-
 type ProdutoRepositoryInterface interface {
 	DeleteProdutoByIdRepository(ctx context.Context, Id int64) error
 	AtualizarProduto(ctx context.Context, arg db.AtualizarProdutoByIDParams) (db.Produto, error)
@@ -39,4 +35,9 @@ type ActivationCodeRepositoryInterface interface {
 
 type CreateSaleInterface interface {
 	CreateSale(ctx context.Context, arg db.CreateSaleParams) (db.Sale, error)
+}
+
+type SellersRepositoryInterface interface {
+	CreateSeller(ctx context.Context, seller model.Seller) (db.CreateSellerRow, error)
+	UpdateSellerStatus(ctx context.Context, params db.UpdateCadastroStatusParams) error
 }

@@ -10,22 +10,25 @@ import (
 	"fmt"
 	"math/big"
 	"os"
-	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 type CadastroService struct {
 	Repo        Repository.CadastroRepositoryInterface
-	R           Repository.SellerRepositoryInterface
+	R           Repository.SellersRepositoryInterface
 	Twilio      *TwilioService
 	Repos       *Repository.ActivationNewRepository
 	CountryCode string
 }
 
-func NewCadastroService(cadastroRepo Repository.CadastroRepositoryInterface, repo *Repository.SellerRepository, twilioService *TwilioService, activationRepo *Repository.ActivationNewRepository) *CadastroService {
+func NewCadastroService(
+	cadastroRepo Repository.CadastroRepositoryInterface,
+	activationRepo *Repository.ActivationNewRepository,
+) *CadastroService {
 	countryCode := os.Getenv("DEFAULT_COUNTRY_CODE")
 
+	twilioService := NewTwilioService()
 	return &CadastroService{
 		Repo:        cadastroRepo,
 		Twilio:      twilioService,
@@ -63,10 +66,6 @@ func (s *CadastroService) CreateCadastro(ctx context.Context, data model.Cadastr
 		Celular:  data.Celular,
 		Password: string(hashedPassword),
 		Status:   "pendente",
-		ActivationCode: sql.NullString{
-			String: "",
-			Valid:  true,
-		},
 	}
 
 	cadastro, err := s.Repo.CreateCadastroRepository(ctx, arg)
@@ -75,20 +74,17 @@ func (s *CadastroService) CreateCadastro(ctx context.Context, data model.Cadastr
 	}
 
 	code := GenerateActivationCode()
-	expiresAt := time.Now().Add(5 * time.Minute)
 
 	params := db.SaveActivationCodeParams{
-		CadastroID: cadastro.ID,
-		Code:       code,
-		ExpiresAt:  expiresAt,
+		CadastroID:      cadastro.ID,
+		ActivationCodes: code,
 	}
+
 	if err := s.Repos.SaveActivationCode(ctx, params); err != nil {
 		return cadastro, fmt.Errorf("erro ao salvar código de ativação: %w", err)
 	}
 
 	to := cadastro.Celular
-	code = GenerateActivationCode()
-
 	if err := s.Twilio.SendActivationCode(to, code); err != nil {
 		return cadastro, fmt.Errorf("erro ao enviar código de ativação: %w", err)
 	}
