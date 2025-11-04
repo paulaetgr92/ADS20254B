@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { apiFetch } from "../api";
 import "./RentalAuth.css";
 
@@ -38,6 +39,10 @@ export default function ModernLogin({ setToken, switchToCadastro }) {
 
   return (
     <div className="rental-auth-container">
+      <Link to="/admin/login" className="admin-link">
+        Área do Administrador
+      </Link>
+
       <div className="rental-auth-card">
         <div className="rental-logo">
           <h1>DoutorRent</h1>

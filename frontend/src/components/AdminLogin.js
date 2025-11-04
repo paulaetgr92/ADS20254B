@@ -1,20 +1,15 @@
 import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import "./AdminAuth.css";
 
-const AdminLogin = ({ setAdminToken, switchToAdminCadastro }) => {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+const AdminLogin = ({ setToken, setRole }) => {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const handleChange = (e) =>
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,25 +19,27 @@ const AdminLogin = ({ setAdminToken, switchToAdminCadastro }) => {
     try {
       const response = await fetch("http://localhost:8080/api/v1/admin/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          const adminToken = `admin_${Date.now()}`;
-          localStorage.setItem("adminToken", adminToken);
-          localStorage.setItem("adminEmail", formData.email);
-          setAdminToken(adminToken);
-        }
-      } else {
-        setError("Credenciais inválidas");
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Credenciais inválidas");
       }
-    } catch (error) {
-      setError("Erro ao conectar com o servidor");
+
+      const token = `admin_${Date.now()}`;
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", "admin");
+      localStorage.setItem("userEmail", formData.email);
+      setToken(token);
+      setRole("admin");
+
+      navigate("/admin/dashboard");
+    } catch (err) {
+      console.error("Erro ao logar admin:", err);
+      setError(err.message || "Erro ao conectar com o servidor");
     } finally {
       setLoading(false);
     }
@@ -50,6 +47,11 @@ const AdminLogin = ({ setAdminToken, switchToAdminCadastro }) => {
 
   return (
     <div className="admin-auth-container">
+      {/* Voltar para login de usuário */}
+      <Link to="/" className="admin-link">
+        Voltar para Usuário
+      </Link>
+
       <div className="admin-auth-card">
         <div className="admin-auth-header">
           <h2>Login Admin</h2>
@@ -60,10 +62,9 @@ const AdminLogin = ({ setAdminToken, switchToAdminCadastro }) => {
           {error && <div className="error-message">{error}</div>}
 
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label>Email</label>
             <input
               type="email"
-              id="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
@@ -73,10 +74,9 @@ const AdminLogin = ({ setAdminToken, switchToAdminCadastro }) => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Senha</label>
+            <label>Senha</label>
             <input
               type="password"
-              id="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
@@ -96,14 +96,10 @@ const AdminLogin = ({ setAdminToken, switchToAdminCadastro }) => {
 
         <div className="admin-auth-footer">
           <p>
-            Não tem uma conta?
-            <button
-              type="button"
-              className="link-button"
-              onClick={switchToAdminCadastro}
-            >
+            Não tem uma conta?{" "}
+            <Link to="/admin/cadastro" className="link-button">
               Cadastre-se
-            </button>
+            </Link>
           </p>
         </div>
       </div>
