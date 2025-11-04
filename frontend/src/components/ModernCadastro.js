@@ -85,7 +85,7 @@ export default function ModernCadastro({ switchToLogin }) {
                     cnpj: "",
                     celular: "",
                 });
-                navigate("/sellers", { state: { email } });
+                navigate("/active", { state: { email } });
             }, 1500);
 
         } catch (err) {

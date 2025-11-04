@@ -5,6 +5,7 @@ import ModernCadastro from "./components/ModernCadastro";
 import RentalDashboard from "./components/RentalDashboard";
 import RentClothingPage from "./components/RentClothingPage"; // ← nova página importada
 import "./App.css";
+import AtivarConta from "./components/Sellers";
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("token") || "");
@@ -40,6 +41,10 @@ function App() {
                 )
               }
             />
+              <Route
+                  path="/active"
+                  element={<AtivarConta/>}
+              />
             {/* Redireciona qualquer outra rota para login se não tiver token */}
             <Route path="*" element={<Navigate to="/" />} />
           </>
