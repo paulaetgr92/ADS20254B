@@ -15,6 +15,7 @@ func SetupRoutes(
 	produtoHandler *handler2.ProdutoHandler,
 	salesHandler *handler2.SaleHandler,
 	adminHandler *handler2.AdminHandler,
+	activationHandler *handler2.ActivationHandler, // ✅ Adicionado
 ) {
 	api := e.Group("/api/v1")
 
@@ -28,7 +29,6 @@ func SetupRoutes(
 	sellers := api.Group("/sellers")
 	{
 		sellers.POST("", sellerHandler.CreateSeller)
-		sellers.POST("/verify", sellerHandler.VerifySeller)
 	}
 
 	// 📁 Login
@@ -58,6 +58,17 @@ func SetupRoutes(
 	vendas := api.Group("/sales")
 	{
 		vendas.POST("", salesHandler.CreateSale)
+	}
+
+	// 📁 Ativação (🔐 Nova seção)
+	activation := api.Group("/activation")
+	{
+
+		activation.POST("/save", activationHandler.SaveActivationCode)
+
+		activation.GET("/verify", activationHandler.VerifyActivationCode)
+
+		activation.GET("/get", activationHandler.GetActivationCode)
 	}
 
 	// 📌 Health Check

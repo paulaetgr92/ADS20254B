@@ -1,6 +1,8 @@
 package handler
 
-import "github.com/labstack/echo/v4"
+import (
+	"github.com/labstack/echo/v4"
+)
 
 type CadastroHandlerInterface interface {
 	CreateCadastro(c echo.Context) error
@@ -15,9 +17,6 @@ type CreateLoginHandlerInterface interface {
 	Login(c echo.Context) error
 }
 
-type twillioHandlerInterface interface {
-	VerifyCode(c echo.Context) error
-}
 type ProdutoHandlerInterface interface {
 	CreateProductHandler(c echo.Context) error
 	InativarProdutoHandler(c echo.Context) error
@@ -28,4 +27,10 @@ type ProdutoHandlerInterface interface {
 
 type SaleHandlerInterface interface {
 	CreateSale(c echo.Context) error
+}
+
+type ActivatioHandlerInterface interface {
+	VerifyActivationCode(c echo.Context) error
+	SaveActivationCode(c echo.Context) error
+	GetActivationCode(c echo.Context) error
 }

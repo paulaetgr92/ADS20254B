@@ -1,87 +1,85 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { apiFetch } from "../api";
 import "./RentalAuth.css";
 
-export default function AtivarConta() {
-    const location = useLocation();
-    const email = location.state?.email; // email passado do cadastro
-    const [codigo, setCodigo] = useState("");
+export default function ActivationForm() {
+    const [code, setCode] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const cadastroId = location.state?.cadastroId;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
         setSuccess("");
 
-        if (!codigo) {
-            setError("Informe o código de ativação recebido por SMS");
-            return;
-        }
+        if (!code) return setError("Digite o código de ativação");
 
         setLoading(true);
-        try {
-            await apiFetch("ativar-conta", {
-                method: "POST",
-                body: JSON.stringify({ email, codigo }),
-            });
 
-            setSuccess("Conta ativada com sucesso! Redirecionando para login...");
+        try {
+        
+            const verifyResponse = await apiFetch("activation/verify", {
+                method: "POST",
+                body: JSON.stringify({ id: cadastroId, code }),
+            });
+            console.log("Resposta da verificação:", verifyResponse);
+
+            if (!verifyResponse?.success) {
+                throw new Error(verifyResponse?.message || "Código inválido");
+            }
+
+
+             const getResponse = await apiFetch(`activation/get?id=${cadastroId}&code=${code}`, {
+                 method: "GET",
+             });
+             console.log("Resposta da busca:", getResponse);
+
+            setSuccess("Cadastro ativado com sucesso!");
             setTimeout(() => {
                 navigate("/login");
             }, 1500);
+
         } catch (err) {
-            if (err.status === 401) {
-                setError(
-                    "Código inválido ou não autorizado. Verifique o SMS ou solicite outro."
-                );
-            } else {
-                setError(err.message || "Erro ao ativar conta");
-            }
+            console.error("Erro na requisição:", err);
+            setError(err.message || "Erro ao ativar cadastro");
         } finally {
             setLoading(false);
         }
     };
-
-    if (!email) {
-        return (
-            <div className="rental-auth-container">
-                <div className="rental-auth-card">
-                    <p>Email não informado. Volte ao cadastro.</p>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="rental-auth-container">
             <div className="rental-auth-card">
                 <div className="rental-logo">
                     <h1>DoutorRent</h1>
-                    <p className="rental-tagline">Ative sua conta para continuar</p>
+                    <p className="rental-tagline">Ative sua conta</p>
                 </div>
 
                 <div className="rental-auth-content">
-                    <h2>Ativação da conta</h2>
-                    <p>Digite o código que você recebeu por SMS</p>
+                    <h2>Ativação</h2>
+                    <p>Digite o código que você recebeu via SMS</p>
+
                     {error && <div className="rental-error">{error}</div>}
                     {success && <div className="rental-success">{success}</div>}
 
                     <form onSubmit={handleSubmit} className="rental-form">
                         <input
                             type="text"
-                            name="codigo"
+                            name="code"
                             placeholder="Código de ativação"
-                            value={codigo}
-                            onChange={(e) => setCodigo(e.target.value)}
+                            value={code}
+                            onChange={(e) => setCode(e.target.value)}
                             required
                             className="rental-input"
                         />
                         <button type="submit" className="continue-btn" disabled={loading}>
-                            {loading ? "Validando código..." : "Ativar conta"}
+                            {loading ? "Ativando..." : "Ativar cadastro"}
                         </button>
                     </form>
                 </div>

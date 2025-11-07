@@ -1,8 +1,8 @@
 -- name: CreateSeller :one
 INSERT INTO cadastro (
-    activation_code,
     name,
     email,
+                      activation_code,
     password,
     cpf,
     cnpj,
@@ -10,6 +10,6 @@ INSERT INTO cadastro (
     status,
     created_at
 ) VALUES (
-             $1, $2, $3, $4, $5, $6, $7, $8,NOW()
+             $1, $2, $3, $4, $5, $6, $7,$8, NOW()
          )
-RETURNING id, name, email, status,  activation_code, celular;
+RETURNING id AS cadastro_id,activation_code, status;

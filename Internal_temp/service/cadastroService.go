@@ -5,10 +5,8 @@ import (
 	Repository "awesomeProject/Internal_temp/repository"
 	db "awesomeProject/db/sqlc"
 	"context"
-	"crypto/rand"
 	"database/sql"
 	"fmt"
-	"math/big"
 	"os"
 
 	"golang.org/x/crypto/bcrypt"
@@ -37,14 +35,6 @@ func NewCadastroService(
 	}
 }
 
-func GenerateActivationCode() string {
-	num, err := rand.Int(rand.Reader, big.NewInt(10000))
-	if err != nil {
-		return "0000"
-	}
-	return fmt.Sprintf("%04d", num.Int64())
-}
-
 func (s *CadastroService) CreateCadastro(ctx context.Context, data model.CadastroRequest) (db.Cadastro, error) {
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(data.Password), bcrypt.DefaultCost)
@@ -52,15 +42,16 @@ func (s *CadastroService) CreateCadastro(ctx context.Context, data model.Cadastr
 		return db.Cadastro{}, fmt.Errorf("erro ao gerar hash da senha: %w", err)
 	}
 
+	// Cria o cadastro no banco
 	arg := db.CreateCadastroParams{
 		Name: data.Name,
 		Cpf: sql.NullString{
 			String: data.CPF,
-			Valid:  true,
+			Valid:  data.CPF != "",
 		},
 		Cnpj: sql.NullString{
 			String: data.CNPJ,
-			Valid:  true,
+			Valid:  data.CNPJ != "",
 		},
 		Email:    data.Email,
 		Celular:  data.Celular,
@@ -70,23 +61,21 @@ func (s *CadastroService) CreateCadastro(ctx context.Context, data model.Cadastr
 
 	cadastro, err := s.Repo.CreateCadastroRepository(ctx, arg)
 	if err != nil {
-		return cadastro, err
+		return db.Cadastro{}, fmt.Errorf("erro ao criar cadastro: %w", err)
 	}
 
-	code := GenerateActivationCode()
+	codeSID, err := s.Twilio.SendActivationCode(cadastro.Celular)
+	if err != nil {
+		return cadastro, fmt.Errorf("erro ao enviar SMS com código de ativação: %w", err)
+	}
 
 	params := db.SaveActivationCodeParams{
-		CadastroID:      cadastro.ID,
-		ActivationCodes: code,
+		CadastroID:     cadastro.ID,
+		ActivationCode: codeSID, // vem do Twilio
 	}
 
-	if err := s.Repos.SaveActivationCode(ctx, params); err != nil {
+	if _, err := s.Repos.SaveActivationCode(ctx, params); err != nil {
 		return cadastro, fmt.Errorf("erro ao salvar código de ativação: %w", err)
-	}
-
-	to := cadastro.Celular
-	if err := s.Twilio.SendActivationCode(to, code); err != nil {
-		return cadastro, fmt.Errorf("erro ao enviar código de ativação: %w", err)
 	}
 
 	return cadastro, nil

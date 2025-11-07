@@ -1,80 +1,63 @@
 package handler
 
 import (
+	"context"
+	"net/http"
+
 	"awesomeProject/Internal_temp/model"
 	"awesomeProject/Internal_temp/service"
-	"context"
+
 	"github.com/labstack/echo/v4"
-	"net/http"
 )
 
-// SellerHandler gerencia as rotas de Seller
-type SellerHandler struct {
-	Service *service.SellerService
+// Struct de resposta do seller
+type SellerResponse struct {
+	CadastroID     int    `json:"cadastro_id"`
+	Name           string `json:"name"`
+	Email          string `json:"email"`
+	ActivationCode string `json:"activation_code"`
 }
 
-// Novo handler
-func NewSellerHandler(svc *service.SellerService) *SellerHandler {
+// Handler do Seller
+type SellerHandler struct {
+	Service service.SellerServiceInterface
+}
+
+// Construtor
+func NewSellerHandler(service service.SellerServiceInterface) *SellerHandler {
 	return &SellerHandler{
-		Service: svc,
+		Service: service,
 	}
 }
 
-// CreateSeller cria um novo seller, salva o código de ativação e envia SMS
+// POST /sellers
 func (h *SellerHandler) CreateSeller(c echo.Context) error {
 	ctx := context.Background()
+	var req model.SellerRequest
 
-	var req model.Seller
+	// Faz o bind do JSON enviado no corpo da requisição
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "dados inválidos",
+			"error": "Erro ao processar a requisição: " + err.Error(),
 		})
 	}
 
-	seller, err := h.Service.CreateSeller(ctx, req)
+	// Chama o serviço para criar o seller
+	sellerData, err := h.Service.CreateSeller(ctx, req)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
+			"error": "Erro ao criar vendedor: " + err.Error(),
 		})
 	}
 
-	// Retorna informações do seller (sem expor senha)
-	resp := map[string]interface{}{
-		"id":               seller.CadastroId,
-		"name":             seller.Name,
-		"email":            seller.Email,
-		"phone":            seller.Phone,
-		"status":           seller.Status,
-		"activation_codes": seller.ActivationCodes, // opcional mostrar
+	sellerResp := SellerResponse{
+		CadastroID:     sellerData.CadastroID,
+		Name:           sellerData.Name,
+		ActivationCode: sellerData.ActivationCode,
 	}
 
-	return c.JSON(http.StatusCreated, resp)
-}
-
-// VerifySeller valida o código de ativação e ativa a conta
-func (h *SellerHandler) VerifySeller(c echo.Context) error {
-	ctx := context.Background()
-
-	type VerifyRequest struct {
-		CadastroID int64  `json:"cadastro_id"`
-		Code       string `json:"code"`
-	}
-
-	var req VerifyRequest
-	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "dados inválidos",
-		})
-	}
-
-	status, err := h.Service.VerifySeller(ctx, req.CadastroID, req.Code)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": err.Error(),
-		})
-	}
-
-	return c.JSON(http.StatusOK, map[string]string{
-		"status": status,
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "Vendedor criado com sucesso. Código de ativação enviado via SMS.",
+		"seller":  sellerResp,
 	})
 }

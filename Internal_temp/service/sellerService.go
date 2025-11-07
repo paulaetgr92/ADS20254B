@@ -40,8 +40,7 @@ func generateActivationCode() string {
 	return strconv.Itoa(code)
 }
 
-// Envia código de ativação via Twilio
-func (s *SellerService) SendActivationCode(to string, code string) error {
+func (s *SellerService) SendActivationCode(to string, code string) (string, error) {
 	client := twilio.NewRestClientWithParams(twilio.ClientParams{
 		Username: os.Getenv("TWILIO_ACCOUNT_SID"),
 		Password: os.Getenv("TWILIO_AUTH_TOKEN"),
@@ -49,89 +48,69 @@ func (s *SellerService) SendActivationCode(to string, code string) error {
 
 	params := &openapi.CreateMessageParams{}
 	params.SetTo(to)
-	params.SetFrom(os.Getenv("TWILIO_SMS_FROM")) // número Twilio habilitado para SMS
+	params.SetFrom(os.Getenv("TWILIO_PHONE_NUMBER")) // número Twilio habilitado para SMS
 	params.SetBody(fmt.Sprintf("Seu código de ativação é: %s", code))
 
-	_, err := client.Api.CreateMessage(params)
+	resp, err := client.Api.CreateMessage(params)
 	if err != nil {
-		return fmt.Errorf("erro ao enviar SMS: %w", err)
+		return "", fmt.Errorf("erro ao enviar SMS: %w", err)
 	}
-	return nil
+
+	// ✅ Retorna o SID da mensagem (identificador único do envio)
+	return *resp.Sid, nil
 }
 
-// Cria seller, salva código de ativação e envia SMS
-func (s *SellerService) CreateSeller(ctx context.Context, seller model.Seller) (model.Seller, error) {
-	seller.Status = "pendente"
+func (s *SellerService) CreateSeller(ctx context.Context, seller model.SellerRequest) (model.SellerResponse, error) {
 
-	// Cria seller no banco
-	dbSeller, err := s.Repo.CreateSeller(ctx, seller)
+	arg := db.CreateSellerParams{
+		Name:           seller.Name,
+		Email:          seller.Email,
+		ActivationCode: sql.NullString{}, // será preenchido após o envio via Twilio
+		Password:       seller.Password,
+		Cpf: sql.NullString{
+			String: seller.CPF,
+			Valid:  seller.CPF != "",
+		},
+		Cnpj: sql.NullString{
+			String: seller.CNPJ,
+			Valid:  seller.CNPJ != "",
+		},
+		Celular: seller.Celular,
+		Status:  "pendente",
+	}
+
+	// 1️⃣ Cria o vendedor no banco
+	dbSeller, err := s.Repo.CreateSeller(ctx, arg)
 	if err != nil {
-		return seller, err
+		return model.SellerResponse{}, err
 	}
 
-	createdSeller := model.Seller{
-		Name:       dbSeller.Name,
-		Email:      dbSeller.Email,
-		CadastroId: dbSeller.ID,
-		Phone:      dbSeller.Celular,
-		Status:     dbSeller.Status,
+	code := generateActivationCode()
+	codeSID, err := s.SendActivationCode(seller.Celular, code)
+	if err != nil {
+		return model.SellerResponse{}, fmt.Errorf("erro ao enviar código via Twilio: %w", err)
 	}
 
-	// Gera código de ativação
-	codeStr := generateActivationCode()
-	createdSeller.ActivationCodes = codeStr
-
-	// Salva código no banco
+	// 3️⃣ Salva o código e o SID no banco
 	params := db.SaveActivationCodeParams{
-		CadastroID:      createdSeller.CadastroId,
-		ActivationCodes: codeStr,
-		Code:            codeStr,
-		ExpiresAt:       time.Now().Add(10 * time.Minute),
+		CadastroID:     dbSeller.CadastroID,
+		ActivationCode: code,
+		Code:           codeSID,
+		ExpiresAt:      time.Now().Add(10 * time.Minute),
 		Status: sql.NullString{
 			String: "pendente",
 			Valid:  true,
 		},
 	}
 
-	if err := s.AC.SaveActivationCode(ctx, params); err != nil {
-		return createdSeller, errors.New("não foi possível salvar o código de ativação")
+	if _, err := s.AC.SaveActivationCode(ctx, params); err != nil {
+		return model.SellerResponse{}, errors.New("não foi possível salvar o código de ativação")
 	}
 
-	// Envia código via SMS
-	if err := s.SendActivationCode(createdSeller.Phone, codeStr); err != nil {
-		return createdSeller, fmt.Errorf("erro ao enviar código de ativação: %w", err)
+	createdSeller := model.SellerResponse{
+		CadastroID:     int(dbSeller.CadastroID),
+		ActivationCode: "",
 	}
 
 	return createdSeller, nil
-}
-
-// Verifica código de ativação e ativa seller
-func (s *SellerService) VerifySeller(ctx context.Context, cadastroId int64, code string) (string, error) {
-	arg := db.GetCadastroByActivationCodeParams{
-		ID: cadastroId,
-		ActivationCode: sql.NullString{
-			String: code,
-			Valid:  true,
-		},
-	}
-
-	cadastro, err := s.AC.GetActivationCode(ctx, arg)
-	if err != nil {
-		return "", errors.New("código de ativação inválido")
-	}
-
-	if cadastro.Status == "ativo" {
-		return "", errors.New("conta já está ativa")
-	}
-
-	req := db.UpdateCadastroStatusParams{
-		ID:     cadastro.ID,
-		Status: "ativo",
-	}
-
-	if err := s.Repo.UpdateSellerStatus(ctx, req); err != nil {
-		return "", errors.New("não foi possível ativar a conta")
-	}
-
-	return "ativo", nil
 }

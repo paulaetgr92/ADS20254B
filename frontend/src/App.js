@@ -6,69 +6,79 @@ import RentalDashboard from "./components/RentalDashboard";
 import RentClothingPage from "./components/RentClothingPage"; // ← nova página importada
 import "./App.css";
 import AtivarConta from "./components/Sellers";
+import Active from "./components/Active";
 
 function App() {
-  const [token, setToken] = useState(localStorage.getItem("token") || "");
-  const [currentView, setCurrentView] = useState("login");
+    const [token, setToken] = useState(localStorage.getItem("token") || "");
+    const [currentView, setCurrentView] = useState("login");
 
-  const handleLogout = () => {
-    setToken("");
-    localStorage.removeItem("token");
-    localStorage.removeItem("userEmail");
-  };
+    const handleLogout = () => {
+        setToken("");
+        localStorage.removeItem("token");
+        localStorage.removeItem("userEmail");
+    };
 
-  const switchToLogin = () => {
-    setCurrentView("login");
-  };
+    const switchToLogin = () => {
+        setCurrentView("login");
+    };
 
-  const switchToCadastro = () => {
-    setCurrentView("cadastro");
-  };
+    const switchToCadastro = () => {
+        setCurrentView("cadastros");
+    };
 
-  return (
-    <Router>
-      <Routes>
-        {/* 🔐 Rota de login/cadastro */}
-        {!token ? (
-          <>
-            <Route
-              path="/"
-              element={
-                currentView === "login" ? (
-                  <ModernLogin setToken={setToken} switchToCadastro={switchToCadastro} />
+    return (
+        <Router>
+            <Routes>
+                {/* 🔐 Rota de login/cadastro */}
+                {!token ? (
+                    <>
+                        <Route
+                            path="/"
+                            element={
+                                currentView === "login" ? (
+                                    <ModernLogin setToken={setToken} switchToCadastro={switchToCadastro} />
+                                ) : (
+                                    <ModernCadastro setToken={setToken} switchToLogin={switchToLogin} />
+                                )
+                            }
+                        />
+                        <Route
+                            path="/active"
+                            element={<AtivarConta/>}
+                        />
+
+                        <Route
+                            path="/active/get"
+                            element={<AtivarConta/>}
+                        />
+                        <Route
+                            path="/active/verify"
+                            element={<Active/>}
+                        />
+                        {/* Redireciona qualquer outra rota para login se não tiver token */}
+                        <Route path="*" element={<Navigate to="/" />} />
+                    </>
                 ) : (
-                  <ModernCadastro setToken={setToken} switchToLogin={switchToLogin} />
-                )
-              }
-            />
-              <Route
-                  path="/active"
-                  element={<AtivarConta/>}
-              />
-            {/* Redireciona qualquer outra rota para login se não tiver token */}
-            <Route path="*" element={<Navigate to="/" />} />
-          </>
-        ) : (
-          <>
-            {/* 🏠 Dashboard principal */}
-            <Route
-              path="/dashboard"
-              element={<RentalDashboard token={token} onLogout={handleLogout} />}
-            />
+                    <>
+                        {/* 🏠 Dashboard principal */}
+                        <Route
+                            path="/dashboard"
+                            element={<RentalDashboard token={token} onLogout={handleLogout} />}
+                        />
 
-            {/* 👕 Nova página de aluguel de roupa */}
-            <Route
-              path="/alugar/:id"
-              element={<RentClothingPage token={token} onLogout={handleLogout} />}
-            />
+                        {/* 👕 Nova página de aluguel de roupa */}
+                        <Route
+                            path="/alugar/:id"
+                            element={<RentClothingPage token={token} onLogout={handleLogout} />}
+                        />
 
-            {/* Se o usuário tentar acessar "/" redireciona pro dashboard */}
-            <Route path="*" element={<Navigate to="/dashboard" />} />
-          </>
-        )}
-      </Routes>
-    </Router>
-  );
+                        {/* Se o usuário tentar acessar "/" redireciona pro dashboard */}
+                        <Route path="*" element={<Navigate to="/dashboard" />} />
+                    </>
+                )}
+            </Routes>
+        </Router>
+    );
 }
 
 export default App;

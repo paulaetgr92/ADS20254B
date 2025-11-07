@@ -12,9 +12,9 @@ import (
 
 const createSeller = `-- name: CreateSeller :one
 INSERT INTO cadastro (
-    activation_code,
     name,
     email,
+                      activation_code,
     password,
     cpf,
     cnpj,
@@ -22,15 +22,15 @@ INSERT INTO cadastro (
     status,
     created_at
 ) VALUES (
-             $1, $2, $3, $4, $5, $6, $7, $8,NOW()
+             $1, $2, $3, $4, $5, $6, $7,$8, NOW()
          )
-RETURNING id, name, email, status,  activation_code, celular
+RETURNING id AS cadastro_id,activation_code, status
 `
 
 type CreateSellerParams struct {
-	ActivationCode sql.NullString
 	Name           string
 	Email          string
+	ActivationCode sql.NullString
 	Password       string
 	Cpf            sql.NullString
 	Cnpj           sql.NullString
@@ -39,19 +39,16 @@ type CreateSellerParams struct {
 }
 
 type CreateSellerRow struct {
-	ID             int64
-	Name           string
-	Email          string
-	Status         string
+	CadastroID     int64
 	ActivationCode sql.NullString
-	Celular        string
+	Status         string
 }
 
 func (q *Queries) CreateSeller(ctx context.Context, arg CreateSellerParams) (CreateSellerRow, error) {
 	row := q.db.QueryRowContext(ctx, createSeller,
-		arg.ActivationCode,
 		arg.Name,
 		arg.Email,
+		arg.ActivationCode,
 		arg.Password,
 		arg.Cpf,
 		arg.Cnpj,
@@ -59,13 +56,6 @@ func (q *Queries) CreateSeller(ctx context.Context, arg CreateSellerParams) (Cre
 		arg.Status,
 	)
 	var i CreateSellerRow
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.Email,
-		&i.Status,
-		&i.ActivationCode,
-		&i.Celular,
-	)
+	err := row.Scan(&i.CadastroID, &i.ActivationCode, &i.Status)
 	return i, err
 }

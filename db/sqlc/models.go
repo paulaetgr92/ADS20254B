@@ -10,13 +10,13 @@ import (
 )
 
 type ActivationCode struct {
-	ID              int32
-	ActivationCodes string
-	CadastroID      int64
-	Code            string
-	Status          sql.NullString
-	ExpiresAt       time.Time
-	CreatedAt       sql.NullTime
+	ID             int32
+	ActivationCode string
+	CadastroID     int64
+	Code           string
+	Status         sql.NullString
+	ExpiresAt      time.Time
+	CreatedAt      sql.NullTime
 }
 
 type Admin struct {

@@ -1,42 +1,28 @@
 package Repository
 
 import (
-	"awesomeProject/Internal_temp/model"
 	db "awesomeProject/db/sqlc"
 	"context"
-	"database/sql"
+
 	"fmt"
 )
 
 type SellerRepository struct {
-	Queries *db.Queries
+	BaseRepository
 }
 
-func NewSellerRepository(queries *db.Queries) *SellerRepository {
+func NewSellerRepository(repository BaseRepository) *SellerRepository {
 	return &SellerRepository{
-		Queries: queries,
+		BaseRepository: repository,
 	}
 }
 
-func (r *SellerRepository) CreateSeller(ctx context.Context, seller model.Seller) (db.CreateSellerRow, error) {
-	return r.Queries.CreateSeller(ctx, db.CreateSellerParams{
-		ActivationCode: sql.NullString{
-			String: seller.ActivationCodes,
-		},
-		Name:     seller.Name,
-		Email:    seller.Email,
-		Password: seller.Password,
-		Cpf: sql.NullString{
-			String: seller.Cpf,
-			Valid:  true,
-		},
-		Cnpj: sql.NullString{
-			String: seller.Cnpj,
-			Valid:  true,
-		},
-		Celular: seller.Phone,
-		Status:  seller.Status,
-	})
+func (r *SellerRepository) CreateSeller(ctx context.Context, arg db.CreateSellerParams) (db.CreateSellerRow, error) {
+	err := r.GetConnection(ctx)
+	if err != nil {
+		return db.CreateSellerRow{}, err
+	}
+	return r.Queries.CreateSeller(ctx, arg)
 }
 
 func (r *SellerRepository) UpdateSellerStatus(ctx context.Context, params db.UpdateCadastroStatusParams) error {
